@@ -6,31 +6,38 @@ import "react-datepicker/dist/react-datepicker.css";
 const DateFilter = ({ events, setInfoView }) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [originalEvents, setOriginalEvents] = useState([]);
+  const [startData, setStartData] = useState(null);
+  const today = new Date();
 
   useEffect(() => {
-    setOriginalEvents(events);
-    setInfoView(events);
-  }, [events]);
+    if (startData === null) {
+      setStartData(events);
+    }
+  }, []);
 
   useEffect(() => {
-    handleChangeFilter();
+    if (startData) {
+      handleChangeFilter();
+    }
   }, [startDate, endDate]);
 
-  const filterEvent = () => {
-    const response = originalEvents.filter((event) => {
-      const eventDate = new Date(event.fecha);
+  const filterEvent = (eventsToFilter) => {
+    const response = eventsToFilter.filter((eventsToFilter) => {
+      const eventoFecha = new Date(eventsToFilter.fecha);
       if (startDate && endDate) {
-        return eventDate >= startDate && eventDate <= endDate;
+        return eventoFecha >= startDate && eventoFecha <= endDate;
+      } else if (startDate) {
+        return eventoFecha >= startDate;
+      } else if (endDate) {
+        return eventoFecha <= endDate;
       }
       return true;
     });
+
     setInfoView(response);
   };
 
-  const handleChangeFilter = () => {
-    filterEvent();
-  };
+  const handleChangeFilter = () => filterEvent(startData);
 
   return (
     <div className="flex flex-col">
@@ -42,7 +49,8 @@ const DateFilter = ({ events, setInfoView }) => {
         placeholderText="Seleccionar fecha inicial"
         showYearDropdown
         scrollableYearDropdown
-        yearDropdownItemNumber={15}
+        yearDropdownItemNumber={100}
+        maxDate={today}
       />
 
       <label>Hasta: </label>
@@ -53,15 +61,16 @@ const DateFilter = ({ events, setInfoView }) => {
         placeholderText="Seleccionar fecha final"
         showYearDropdown
         scrollableYearDropdown
-        yearDropdownItemNumber={15}
+        yearDropdownItemNumber={100}
+        maxDate={today}
       />
     </div>
   );
 };
 
 DateFilter.propTypes = {
-  events: PropTypes.array.isRequired,
-  setInfoView: PropTypes.func.isRequired,
+  events: PropTypes.array,
+  setInfoView: PropTypes.func,
 };
 
 export default DateFilter;

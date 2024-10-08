@@ -3,10 +3,13 @@ import { useState, useEffect } from "react";
 import getInfoFromFile from "./getInfoFromFile";
 import GraphicView from "./graphicView";
 import DateFilter from "./dateFilterView";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
 const InfoView = ({ selectedFeatureInfo, variableName }) => {
   const [infoView, setInfoView] = useState(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [lastElement, setLastElement] = useState("");
 
   const toggleDiv = () => {
     setIsExpanded(!isExpanded);
@@ -14,12 +17,11 @@ const InfoView = ({ selectedFeatureInfo, variableName }) => {
 
   useEffect(() => {
     const fetchInfo = async () => {
-      if (!infoView) {
-        const info = await getInfoFromFile(
-          variableName,
-          selectedFeatureInfo.cod_ele
-        );
+      const element = selectedFeatureInfo.cod_ele;
+      if (element !== lastElement) {
+        const info = await getInfoFromFile(variableName, element);
         setInfoView(info);
+        setLastElement(element);
       }
     };
 
@@ -29,7 +31,17 @@ const InfoView = ({ selectedFeatureInfo, variableName }) => {
   return (
     <>
       <button onClick={toggleDiv}>
-        {isExpanded ? "Contraer" : "Desplegar"}
+        {isExpanded ? (
+          <>
+            <label>Información</label>
+            <ExpandLessIcon />
+          </>
+        ) : (
+          <>
+            <label>Información</label>
+            <ExpandMoreIcon />
+          </>
+        )}
       </button>
       {isExpanded && (
         <div className="flex">
