@@ -3,7 +3,7 @@ import { excelDateToISO } from "../common/helpers";
 
 const getInfoFromFile = async (variableName, cod_ele) => {
   try {
-    const variableFile = `/src/assets/data/${variableName}/${variableName}.xlsx`;
+    const variableFile = `/data/${variableName}/${variableName}.xlsx`;
     const response = await fetch(variableFile);
     const data = await response.arrayBuffer();
     const workbook = XLSX.read(data, { type: "array" });

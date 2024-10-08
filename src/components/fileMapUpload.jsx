@@ -4,7 +4,7 @@ import proj4 from "proj4";
 const loadMapData = async (variableName) => {
   try {
     // Construir la ruta dinámica a la carpeta de datos de la variable
-    const basePath = `/src/assets/data/${variableName}/`;
+    const basePath = `/data/${variableName}/`;
     const shpFilePath = `${basePath}shapefile/${variableName}.shp`;
     const shxFilePath = `${basePath}shapefile/${variableName}.shx`;
     const dbfFilePath = `${basePath}shapefile/${variableName}.dbf`;
