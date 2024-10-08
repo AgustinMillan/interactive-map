@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 import getInfoFromFile from "./getInfoFromFile";
 import GraphicView from "./graphicView";
+import DateFilter from "./dateFilterView";
 
 const InfoView = ({ selectedFeatureInfo, variableName }) => {
   const [infoView, setInfoView] = useState(null);
@@ -13,11 +14,13 @@ const InfoView = ({ selectedFeatureInfo, variableName }) => {
 
   useEffect(() => {
     const fetchInfo = async () => {
-      const info = await getInfoFromFile(
-        variableName,
-        selectedFeatureInfo.cod_ele
-      );
-      setInfoView(info);
+      if (!infoView) {
+        const info = await getInfoFromFile(
+          variableName,
+          selectedFeatureInfo.cod_ele
+        );
+        setInfoView(info);
+      }
     };
 
     fetchInfo();
@@ -31,6 +34,9 @@ const InfoView = ({ selectedFeatureInfo, variableName }) => {
       {isExpanded && (
         <div className="flex">
           <div>
+            {infoView && (
+              <DateFilter events={infoView} setInfoView={setInfoView} />
+            )}
             <h3>Información del objeto seleccionado:</h3>
             <p>
               <strong>Variable:</strong> {variableName}
