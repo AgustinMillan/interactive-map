@@ -14,7 +14,7 @@ const getInfoFromFile = async (variableName, cod_ele) => {
     const json = XLSX.utils.sheet_to_json(worksheet);
 
     return json.map((item) => {
-      return { value: item[cod_ele], fecha: excelDateToISO(item.Fecha) };
+      return { value: item[cod_ele] || 0, fecha: excelDateToISO(item.Fecha) };
     });
   } catch (error) {
     console.error("Error al cargar el archivo XLSX:", error);

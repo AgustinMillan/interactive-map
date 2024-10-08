@@ -4,19 +4,26 @@ import "leaflet/dist/leaflet.css";
 import getStartupVariables from "./getStartupVariables.js";
 import loadMapData from "./fileMapUpload";
 import InfoView from "./infoView";
+import VariablesView from "./variablesView.jsx";
 
 const MapView = () => {
   const [geoData, setGeoData] = useState([]);
   const [visibleLayers, setVisibleLayers] = useState({});
   const [variables, setVariables] = useState([]);
   const [selectedFeatureInfo, setSelectedFeatureInfo] = useState(null);
-  const [selectedVariableName, setSelectedVariableName] = useState(""); // Estado para el nombre de la variable
+  const [selectedVariableName, setSelectedVariableName] = useState("");
+  const [viewLoadData, setViewLoadData] = useState({});
 
   useEffect(() => {
-    // Cargar las variables desde el Excel al montar el componente
     const fetchVariables = async () => {
       const vars = await getStartupVariables();
       setVariables(vars);
+
+      const initialLoadData = vars.reduce((acc, item) => {
+        acc[item.codigo_variable] = true;
+        return acc;
+      }, {});
+      setViewLoadData(initialLoadData);
     };
 
     fetchVariables();
@@ -33,6 +40,11 @@ const MapView = () => {
         ...prevState,
         [variable.codigo_variable]: true,
       }));
+
+      setViewLoadData((prevState) => ({
+        ...prevState,
+        [variable.codigo_variable]: false,
+      }));
     }
   };
 
@@ -43,41 +55,17 @@ const MapView = () => {
     }));
   };
 
-  // Función para manejar el click en las features del mapa
   const onEachFeature = (variableName) => (feature, layer) => {
     layer.on({
       click: () => {
-        // Actualizar el estado con la información de la feature seleccionada
         setSelectedFeatureInfo(feature.properties);
-        setSelectedVariableName(variableName); // Almacenar el nombre de la variable
+        setSelectedVariableName(variableName);
       },
     });
   };
 
   return (
     <div>
-      {variables.map((variable) => {
-        const isVisible = visibleLayers[variable.codigo_variable];
-        return (
-          <div key={variable.variable_name} className="flex">
-            <button
-              className={`m-1 p-1 ${
-                isVisible ? "bg-green-500" : "bg-gray-500"
-              }`}
-              onClick={() => toggleLayerVisibility(variable.codigo_variable)}
-            >
-              {isVisible ? "Ocultar" : "Mostrar"} {variable.codigo_variable}
-            </button>
-            <button
-              className="m-1 p-1 bg-blue-500"
-              onClick={() => handleLoadVariable(variable)}
-            >
-              Cargar {variable.variable_name}
-            </button>
-          </div>
-        );
-      })}
-
       <MapContainer
         center={[-33.45, -70.65]}
         zoom={8}
@@ -93,17 +81,24 @@ const MapView = () => {
             <GeoJSON
               key={index}
               data={layer.data}
-              onEachFeature={onEachFeature(layer.variableName)} // Pasar el nombre de la variable
+              onEachFeature={onEachFeature(layer.variableName)}
             />
           ) : null
         )}
       </MapContainer>
 
-      {/* Mostrar la información de la feature seleccionada */}
+      <VariablesView
+        variables={variables}
+        visibleLayers={visibleLayers}
+        toggleLayerVisibility={toggleLayerVisibility}
+        viewLoadData={viewLoadData}
+        handleLoadVariable={handleLoadVariable}
+      />
+
       {selectedFeatureInfo && (
         <InfoView
           selectedFeatureInfo={selectedFeatureInfo}
-          variableName={selectedVariableName} // Pasar el nombre de la variable
+          variableName={selectedVariableName}
         />
       )}
     </div>
