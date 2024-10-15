@@ -31,33 +31,41 @@ const VariablesView = ({
           </>
         )}
       </button>
-      <div className="flex">
+      <div className="flex w-full">
         {isExpanded &&
           variables.map((variable) => {
-            const isVisible = visibleLayers[variable.codigo_variable];
-            return (
-              <div key={variable.variable_name} className="flex flex-wrap">
-                <button
-                  className={`m-1 p-1 ${
-                    isVisible ? "bg-green-500" : "bg-gray-500"
-                  }`}
-                  onClick={() =>
-                    toggleLayerVisibility(variable.codigo_variable)
-                  }
+            if (variable.map === true) {
+              const isVisible = visibleLayers[variable.codigo_variable];
+              return (
+                <div
+                  key={variable.variable_name}
+                  className="flex flex-wrap w-full justify-around"
                 >
-                  {isVisible ? "Ocultar" : "Mostrar"} {variable.variable_name}
-                </button>
+                  <div className="flex flex-col">
+                    <button
+                      className={`m-1 p-1 ${
+                        isVisible ? "bg-green-500" : "bg-gray-500"
+                      }`}
+                      onClick={() =>
+                        toggleLayerVisibility(variable.codigo_variable)
+                      }
+                    >
+                      {isVisible ? "Ocultar" : "Mostrar"}{" "}
+                      {variable.variable_name}
+                    </button>
 
-                {viewLoadData[variable.codigo_variable] && (
-                  <button
-                    className="m-1 p-1 bg-blue-500"
-                    onClick={() => handleLoadVariable(variable)}
-                  >
-                    Cargar {variable.variable_name}
-                  </button>
-                )}
-              </div>
-            );
+                    {viewLoadData[variable.codigo_variable] && (
+                      <button
+                        className="m-1 p-1 bg-blue-500"
+                        onClick={() => handleLoadVariable(variable)}
+                      >
+                        Cargar {variable.variable_name}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            }
           })}
       </div>
     </div>

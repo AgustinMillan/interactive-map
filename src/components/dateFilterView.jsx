@@ -1,76 +1,83 @@
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import MultiRangeDateSlider from "./multiRangeDateSlider";
 
-const DateFilter = ({ events, setInfoView }) => {
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [startData, setStartData] = useState(null);
-  const today = new Date();
+const DateFilter = ({ events, setInfoView, associate, setInfoAssociated }) => {
+  const { minDate, maxDate } = events.reduce(
+    (acc, curr) => {
+      const currentDate = new Date(curr.fecha).getTime();
+      acc.minDate = Math.min(acc.minDate, currentDate);
+      acc.maxDate = Math.max(acc.maxDate, currentDate);
+      return acc;
+    },
+    {
+      minDate: Infinity,
+      maxDate: -Infinity,
+    }
+  );
+
+  // Manejar valores en caso de que no haya eventos
+  const minDateValue = minDate === Infinity ? null : minDate;
+  const maxDateValue = maxDate === -Infinity ? null : maxDate;
+
+  const [minDateState, setMinDate] = useState(minDateValue);
+  const [maxDateState, setMaxDate] = useState(maxDateValue);
 
   useEffect(() => {
-    if (startData === null) {
-      setStartData(events);
-    }
-  }, []);
+    setMinDate(minDateValue);
+    setMaxDate(maxDateValue);
+  }, [events, minDateValue, maxDateValue]);
 
-  useEffect(() => {
-    if (startData) {
-      handleChangeFilter();
-    }
-  }, [startDate, endDate]);
-
-  const filterEvent = (eventsToFilter) => {
-    const response = eventsToFilter.filter((eventsToFilter) => {
-      const eventoFecha = new Date(eventsToFilter.fecha);
-      if (startDate && endDate) {
-        return eventoFecha >= startDate && eventoFecha <= endDate;
-      } else if (startDate) {
-        return eventoFecha >= startDate;
-      } else if (endDate) {
-        return eventoFecha <= endDate;
-      }
-      return true;
-    });
-
-    setInfoView(response);
+  const handleRangeChange = ([newMinDate, newMaxDate]) => {
+    setMinDate(newMinDate);
+    setMaxDate(newMaxDate);
   };
 
-  const handleChangeFilter = () => filterEvent(startData);
+  useEffect(() => {
+    // Aplicar el filtro cada vez que cambian los límites del rango
+    const filteredEvents = events.filter((event) => {
+      const eventoFecha = new Date(event.fecha).getTime();
+      return eventoFecha >= minDateState && eventoFecha <= maxDateState;
+    });
+
+    setInfoView(filteredEvents);
+
+    if (associate) {
+      const filteredAssociate = associate.filter((event) => {
+        const eventoFecha = new Date(event.fecha).getTime();
+        return eventoFecha >= minDateState && eventoFecha <= maxDateState;
+      });
+      setInfoAssociated(filteredAssociate);
+    } else {
+      setInfoAssociated(null);
+    }
+  }, [
+    minDateState,
+    maxDateState,
+    events,
+    associate,
+    setInfoView,
+    setInfoAssociated,
+  ]);
 
   return (
     <div className="flex flex-col">
-      <label>Desde: </label>
-      <DatePicker
-        selected={startDate}
-        onChange={(date) => setStartDate(date)}
-        dateFormat="dd/MM/yyyy"
-        placeholderText="Seleccionar fecha inicial"
-        showYearDropdown
-        scrollableYearDropdown
-        yearDropdownItemNumber={100}
-        maxDate={today}
-      />
-
-      <label>Hasta: </label>
-      <DatePicker
-        selected={endDate}
-        onChange={(date) => setEndDate(date)}
-        dateFormat="dd/MM/yyyy"
-        placeholderText="Seleccionar fecha final"
-        showYearDropdown
-        scrollableYearDropdown
-        yearDropdownItemNumber={100}
-        maxDate={today}
+      <label>Filtrar por rango de fechas:</label>
+      <MultiRangeDateSlider
+        initialValue={{ minDate: minDateValue, maxDate: maxDateValue }}
+        minDate={minDateValue}
+        maxDate={maxDateValue}
+        onChange={handleRangeChange}
       />
     </div>
   );
 };
 
 DateFilter.propTypes = {
-  events: PropTypes.array,
-  setInfoView: PropTypes.func,
+  events: PropTypes.array.isRequired,
+  setInfoView: PropTypes.func.isRequired,
+  associate: PropTypes.any,
+  setInfoAssociated: PropTypes.func.isRequired,
 };
 
 export default DateFilter;

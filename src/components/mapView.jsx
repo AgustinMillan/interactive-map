@@ -23,6 +23,7 @@ const MapView = () => {
   const [variables, setVariables] = useState([]);
   const [selectedFeatureInfo, setSelectedFeatureInfo] = useState(null);
   const [selectedVariableName, setSelectedVariableName] = useState("");
+  const [associatedVariable, setAssociatedVariable] = useState("");
   const [viewLoadData, setViewLoadData] = useState({});
 
   useEffect(() => {
@@ -41,20 +42,27 @@ const MapView = () => {
   }, []);
 
   const handleLoadVariable = async (variable) => {
-    const geoJson = await loadMapData(variable.codigo_variable);
+    const { codigo_variable, asociado } = variable;
+
+    const geoJson = await loadMapData(codigo_variable);
     if (geoJson) {
       setGeoData((prev) => [
         ...prev,
-        { data: geoJson, variableName: variable.codigo_variable },
+        {
+          data: geoJson,
+          variableName: codigo_variable,
+          associatedVariable: asociado === "-" || !asociado ? null : asociado,
+        },
       ]);
+
       setVisibleLayers((prevState) => ({
         ...prevState,
-        [variable.codigo_variable]: true,
+        [codigo_variable]: true,
       }));
 
       setViewLoadData((prevState) => ({
         ...prevState,
-        [variable.codigo_variable]: false,
+        [codigo_variable]: false,
       }));
     }
   };
@@ -66,11 +74,12 @@ const MapView = () => {
     }));
   };
 
-  const onEachFeature = (variableName) => (feature, layer) => {
+  const onEachFeature = (variable) => (feature, layer) => {
     layer.on({
       click: () => {
         setSelectedFeatureInfo(feature.properties);
-        setSelectedVariableName(variableName);
+        setAssociatedVariable(variable.associatedVariable);
+        setSelectedVariableName(variable.variableName);
       },
     });
   };
@@ -92,7 +101,7 @@ const MapView = () => {
             <GeoJSON
               key={index}
               data={layer.data}
-              onEachFeature={onEachFeature(layer.variableName)}
+              onEachFeature={onEachFeature(layer)}
             />
           ) : null
         )}
@@ -109,6 +118,7 @@ const MapView = () => {
       {selectedFeatureInfo && (
         <InfoView
           selectedFeatureInfo={selectedFeatureInfo}
+          associatedVariable={associatedVariable}
           variableName={selectedVariableName}
         />
       )}

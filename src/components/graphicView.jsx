@@ -24,21 +24,53 @@ ChartJS.register(
   Legend
 );
 
-const GraphicView = ({ data }) => {
-  const labels = data.map((item) => new Date(item.fecha));
-  const values = data.map((item) => item.value);
+const GraphicView = ({ data, associate, variableName, associatedVariable }) => {
+  const dataDates = data.map((item) => new Date(item.fecha));
+  const associateDates = associate
+    ? associate.map((item) => new Date(item.fecha))
+    : [];
+
+  const allDates = [...dataDates, ...associateDates]
+    .filter((value, index, self) => self.indexOf(value) === index)
+    .sort((a, b) => a - b);
+
+  const dataValues = allDates.map((date) => {
+    const found = data.find(
+      (item) => new Date(item.fecha).getTime() === date.getTime()
+    );
+    return found ? found.value : null;
+  });
+
+  const associateValues = allDates.map((date) => {
+    if (associate) {
+      const found = associate.find(
+        (item) => new Date(item.fecha).getTime() === date.getTime()
+      );
+      return found ? found.value : null;
+    }
+    return null;
+  });
 
   const chartData = {
-    labels: labels,
+    labels: allDates,
     datasets: [
       {
-        label: "Valores",
-        data: values,
+        label: variableName,
+        data: dataValues,
         fill: false,
         backgroundColor: "rgba(75,192,192,0.2)",
         borderColor: "rgba(75,192,192,1)",
+        spanGaps: true,
       },
-    ],
+      associate && {
+        label: associatedVariable,
+        data: associateValues,
+        fill: false,
+        backgroundColor: "rgba(255,99,132,0.2)",
+        borderColor: "rgba(255,99,132,1)",
+        spanGaps: true,
+      },
+    ].filter(Boolean),
   };
 
   const options = {
@@ -72,7 +104,10 @@ const GraphicView = ({ data }) => {
 };
 
 GraphicView.propTypes = {
-  data: PropTypes.array,
+  data: PropTypes.array.isRequired,
+  variableName: PropTypes.string.isRequired,
+  associatedVariable: PropTypes.string,
+  associate: PropTypes.array,
 };
 
 export default GraphicView;
