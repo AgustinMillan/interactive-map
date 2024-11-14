@@ -11,7 +11,6 @@ const getStartupVariables = async () => {
     const worksheet = workbook.Sheets[firstSheetName];
 
     const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
     return jsonData;
   } catch (error) {
     console.error("Error al cargar el archivo XLSX:", error);

@@ -24,7 +24,10 @@ const MapView = () => {
   const [selectedFeatureInfo, setSelectedFeatureInfo] = useState(null);
   const [selectedVariableName, setSelectedVariableName] = useState("");
   const [associatedVariable, setAssociatedVariable] = useState("");
+  const [unit, setUnit] = useState("");
+  const [graficType, setGraficType] = useState("");
   const [viewLoadData, setViewLoadData] = useState({});
+  const [mapStyle, setMapStyle] = useState("osm");
 
   useEffect(() => {
     const fetchVariables = async () => {
@@ -42,7 +45,7 @@ const MapView = () => {
   }, []);
 
   const handleLoadVariable = async (variable) => {
-    const { codigo_variable, asociado } = variable;
+    const { codigo_variable, asociado, unidad, grafico } = variable;
 
     const geoJson = await loadMapData(codigo_variable);
     if (geoJson) {
@@ -52,6 +55,8 @@ const MapView = () => {
           data: geoJson,
           variableName: codigo_variable,
           associatedVariable: asociado === "-" || !asociado ? null : asociado,
+          unit: unidad,
+          graficType: grafico,
         },
       ]);
 
@@ -80,20 +85,53 @@ const MapView = () => {
         setSelectedFeatureInfo(feature.properties);
         setAssociatedVariable(variable.associatedVariable);
         setSelectedVariableName(variable.variableName);
+        setUnit(variable.unit);
+        setGraficType(variable.graficType?.toUpperCase());
       },
     });
   };
 
+  const handleMapStyleChange = (event) => {
+    setMapStyle(event.target.value);
+  };
+
+  const tileLayerUrls = {
+    osm: {
+      url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      attribution: "&copy; OpenStreetMap contributors",
+    },
+    satellite: {
+      url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      attribution:
+        "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
+    },
+    dark: {
+      url: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
+      attribution:
+        "&copy; Stadia Maps, OpenMapTiles, OpenStreetMap contributors",
+    },
+    topo: {
+      url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+      attribution: "Map data &copy; OpenTopoMap contributors",
+    },
+  };
+
   return (
     <div>
+      <select value={mapStyle} onChange={handleMapStyleChange}>
+        <option value="osm">Mapa Estándar</option>
+        <option value="satellite">Vista Satélite</option>
+        <option value="dark">Vista Oscura</option>
+        <option value="topo">Vista Topografica</option>
+      </select>
       <MapContainer
         center={[-33.45, -70.65]}
         zoom={8}
         style={{ height: "500px", width: "100%" }}
       >
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url={tileLayerUrls[mapStyle].url}
+          attribution={tileLayerUrls[mapStyle].attribution}
         />
 
         {geoData.map((layer, index) =>
@@ -120,6 +158,8 @@ const MapView = () => {
           selectedFeatureInfo={selectedFeatureInfo}
           associatedVariable={associatedVariable}
           variableName={selectedVariableName}
+          unit={unit}
+          graficType={graficType}
         />
       )}
     </div>

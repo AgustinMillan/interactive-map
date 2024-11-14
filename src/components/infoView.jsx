@@ -10,6 +10,8 @@ const InfoView = ({
   selectedFeatureInfo,
   variableName,
   associatedVariable,
+  unit,
+  graficType,
 }) => {
   const [infoView, setInfoView] = useState(null);
   const [originalInfoData, setOriginalInfoData] = useState(null);
@@ -74,7 +76,7 @@ const InfoView = ({
             )}
             <h3>Información del objeto seleccionado:</h3>
             <p>
-              <strong>Variable:</strong> {variableName}
+              <strong>Variable:</strong> {variableName?.replace("_", " ")}
             </p>
             <ul>
               {Object.entries(selectedFeatureInfo).map(([key, value], idx) => (
@@ -91,6 +93,8 @@ const InfoView = ({
               variableName={variableName}
               associate={infoAssociated}
               associatedVariable={associatedVariable}
+              unit={unit}
+              graficType={graficType}
             />
           )}
         </div>
@@ -103,6 +107,8 @@ InfoView.propTypes = {
   selectedFeatureInfo: PropTypes.object,
   variableName: PropTypes.string,
   associatedVariable: PropTypes.any,
+  unit: PropTypes.string,
+  graficType: PropTypes.string,
 };
 
 export default InfoView;
