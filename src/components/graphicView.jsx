@@ -1,5 +1,5 @@
 import PropTypes from "prop-types";
-import { Line } from "react-chartjs-2";
+import { Line, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,8 +10,10 @@ import {
   Title,
   Tooltip,
   Legend,
+  BarElement,
 } from "chart.js";
 import "chartjs-adapter-date-fns";
+import Zoom from "chartjs-plugin-zoom";
 
 ChartJS.register(
   CategoryScale,
@@ -19,12 +21,21 @@ ChartJS.register(
   TimeScale,
   PointElement,
   LineElement,
+  BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Zoom
 );
 
-const GraphicView = ({ data, associate, variableName, associatedVariable }) => {
+const GraphicView = ({
+  data,
+  associate,
+  variableName,
+  associatedVariable,
+  unit,
+  graficType,
+}) => {
   const dataDates = data.map((item) => new Date(item.fecha));
   const associateDates = associate
     ? associate.map((item) => new Date(item.fecha))
@@ -57,17 +68,15 @@ const GraphicView = ({ data, associate, variableName, associatedVariable }) => {
       {
         label: variableName,
         data: dataValues,
-        fill: false,
-        backgroundColor: "rgba(75,192,192,0.2)",
-        borderColor: "rgba(75,192,192,1)",
+        backgroundColor: "rgba(54, 162, 235, 0.6)",
+        borderColor: "rgba(54, 162, 235, 1)",
         spanGaps: true,
       },
       associate && {
         label: associatedVariable,
         data: associateValues,
-        fill: false,
-        backgroundColor: "rgba(255,99,132,0.2)",
-        borderColor: "rgba(255,99,132,1)",
+        backgroundColor: "rgba(255, 99, 132, 0.6)",
+        borderColor: "rgba(255, 99, 132, 1)",
         spanGaps: true,
       },
     ].filter(Boolean),
@@ -82,6 +91,15 @@ const GraphicView = ({ data, associate, variableName, associatedVariable }) => {
           unit: "month",
         },
       },
+      y: {
+        title: {
+          display: true,
+          text: `Valor (${unit})`,
+        },
+        ticks: {
+          callback: (value) => `${value} ${unit}`,
+        },
+      },
     },
     plugins: {
       legend: {
@@ -91,13 +109,42 @@ const GraphicView = ({ data, associate, variableName, associatedVariable }) => {
         display: true,
         text: "Datos a lo largo del tiempo",
       },
+      tooltip: {
+        callbacks: {
+          label: (context) => {
+            const label = context.dataset.label?.replace("_", " ") || "";
+            const value =
+              context.raw !== null ? `${context.raw} ${unit}` : "N/A";
+            return `${label}: ${value}`;
+          },
+        },
+      },
+      zoom: {
+        zoom: {
+          wheel: {
+            enabled: true, // Permite zoom usando la rueda del mouse
+          },
+          pinch: {
+            enabled: true, // Permite zoom con gestos de pinza en dispositivos táctiles
+          },
+          mode: "xy", // Permite zoom tanto en el eje x como en el eje y
+        },
+        pan: {
+          enabled: true, // Permite el desplazamiento
+          mode: "xy",
+        },
+      },
     },
   };
 
   return (
     <div className="flex justify-center w-full">
       <div className="w-4/5">
-        <Line data={chartData} options={options} />
+        {graficType === "LINEA" ? (
+          <Line data={chartData} options={options} />
+        ) : (
+          <Bar data={chartData} options={options} />
+        )}
       </div>
     </div>
   );
@@ -108,6 +155,8 @@ GraphicView.propTypes = {
   variableName: PropTypes.string.isRequired,
   associatedVariable: PropTypes.string,
   associate: PropTypes.array,
+  unit: PropTypes.string,
+  graficType: PropTypes.string,
 };
 
 export default GraphicView;
