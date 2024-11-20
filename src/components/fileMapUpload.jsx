@@ -1,3 +1,5 @@
+// src/components/fileMapUpload.jsx
+
 import * as shapefile from "shapefile";
 import proj4 from "proj4";
 

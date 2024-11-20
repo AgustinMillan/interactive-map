@@ -1,10 +1,12 @@
+// src/components/infoView.jsx
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
+import dayjs from "dayjs";
 import getInfoFromFile from "./getInfoFromFile";
 import GraphicView from "./graphicView";
 import DateFilter from "./dateFilterView";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import { calculateDateRange } from "../common/helpers";
+
 
 const InfoView = ({
   selectedFeatureInfo,
@@ -17,89 +19,113 @@ const InfoView = ({
   const [originalInfoData, setOriginalInfoData] = useState(null);
   const [originalAssociatedData, setOriginalAssociatedData] = useState(null);
   const [infoAssociated, setInfoAssociated] = useState(null);
-  const [isExpanded, setIsExpanded] = useState(false);
   const [lastElement, setLastElement] = useState("");
 
-  const toggleDiv = () => {
-    setIsExpanded(!isExpanded);
-  };
+  const [dateRange, setDateRange] = useState({ min: null, max: null });
 
   useEffect(() => {
     const fetchInfo = async () => {
-      const element = selectedFeatureInfo.cod_ele;
+      const element = selectedFeatureInfo?.cod_ele;
       if (element !== lastElement || lastElement === "") {
         const info = await getInfoFromFile(variableName, element);
+        const associatedData = associatedVariable
+          ? await getInfoFromFile(associatedVariable, element)
+          : [];
+  
         setInfoView(info);
-        setOriginalInfoData(info); // Guardar los datos originales
-        setOriginalAssociatedData(null);
-        setLastElement(element);
-
-        if (associatedVariable) {
-          const infoAssociated = await getInfoFromFile(
-            associatedVariable,
-            element
-          );
-          setInfoAssociated(infoAssociated);
-          setOriginalAssociatedData(infoAssociated);
-        }
+        setOriginalInfoData(info);
+        setInfoAssociated(associatedData);
+        setOriginalAssociatedData(associatedData);
+  
+        const newRange = calculateDateRange(info || [], associatedData || []);
+        setDateRange(newRange);
       }
     };
+  
+    if (selectedFeatureInfo) {
+      fetchInfo();
+    }
+  }, [selectedFeatureInfo, variableName]);
+  const handleDateRangeChange = (newRange) => {
+    setDateRange(newRange);
 
-    fetchInfo();
-  }, [selectedFeatureInfo.cod_ele, variableName]);
+    if (originalInfoData) {
+      const filteredInfoData = originalInfoData.filter((item) => {
+        const itemDate = dayjs(item.date).valueOf();
+        return itemDate >= newRange.min && itemDate <= newRange.max;
+      });
+      setInfoView(filteredInfoData);
+    }
+
+    if (originalAssociatedData) {
+      const filteredAssociatedData = originalAssociatedData.filter((item) => {
+        const itemDate = dayjs(item.date).valueOf();
+        return itemDate >= newRange.min && itemDate <= newRange.max;
+      });
+      setInfoAssociated(filteredAssociatedData);
+    }
+  };
+
+  if (!selectedFeatureInfo) {
+    return null;
+  }
 
   return (
-    <>
-      <button onClick={toggleDiv}>
-        {isExpanded ? (
-          <>
-            <label>Información</label>
-            <ExpandLessIcon />
-          </>
-        ) : (
-          <>
-            <label>Información</label>
-            <ExpandMoreIcon />
-          </>
-        )}
-      </button>
-      {isExpanded && (
-        <div className="flex">
-          <div>
-            {infoView && (
-              <DateFilter
-                events={originalInfoData} // Los eventos ahora son los datos originales
-                setInfoView={setInfoView} // Mantener la referencia a setInfoView
-                associate={originalAssociatedData}
-                setInfoAssociated={setInfoAssociated}
-              />
-            )}
-            <h3>Información del objeto seleccionado:</h3>
-            <p>
-              <strong>Variable:</strong> {variableName?.replace("_", " ")}
-            </p>
-            <ul>
-              {Object.entries(selectedFeatureInfo).map(([key, value], idx) => (
-                <li key={idx}>
-                  <strong>{key}:</strong> {value}
-                </li>
-              ))}
-            </ul>
+    <div className="info-sidebar">
+      <div className="container-fluid p-3">
+        <div className="row">
+          <div className="col-md-4">
+            <div className="card mb-3">
+              <div className="card-body">
+                <h5 className="card-title">
+                  Información del objeto seleccionado
+                </h5>
+                <p className="card-text">
+                  <strong>Variable:</strong> {variableName?.replace("_", " ")}
+                </p>
+                <ul className="list-unstyled">
+                  {Object.entries(selectedFeatureInfo).map(
+                    ([key, value], idx) => (
+                      <li key={idx}>
+                        <strong>{key}:</strong> {value}
+                      </li>
+                    )
+                  )}
+                </ul>
+              </div>
+            </div>
+            <div className="card">
+              <div className="card-body">
+                {dateRange.min !== null && dateRange.max !== null && (
+                  <DateFilter
+                    events={originalInfoData || []}
+                    dateRange={dateRange}
+                    setDateRange={handleDateRangeChange}
+                  />
+                )}
+              </div>
+            </div>
           </div>
-          <h3>Información obtenida de la base de datos:</h3>
-          {infoView && (
-            <GraphicView
-              data={infoView}
-              variableName={variableName}
-              associate={infoAssociated}
-              associatedVariable={associatedVariable}
-              unit={unit}
-              graficType={graficType}
-            />
-          )}
+          <div className="col-md-8">
+            {infoView && (
+              <div className="card mb-3">
+                <div className="card-body">
+                  <GraphicView
+                    data={infoView}
+                    dateRange={dateRange}
+                    variableName={variableName}
+                    associate={infoAssociated}
+                    associatedVariable={associatedVariable}
+                    unit={unit}
+                    graficType={graficType}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
         </div>
-      )}
-    </>
+      </div>
+    </div>
   );
 };
 

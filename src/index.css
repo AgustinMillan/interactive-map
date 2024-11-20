@@ -1,3 +1,81 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.map-view {
+    position: relative;
+    height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .toggle-sidebar-btn,
+  .toggle-analysis-btn {
+    position: absolute;
+    z-index: 1000;
+    margin: 10px;
+  }
+
+  .toggle-sidebar-btn {
+    top: 70px; /* Debajo de la navbar */
+    left: 10px;
+  }
+
+  .toggle-analysis-btn {
+    bottom: 70px; /* Encima del footer */
+    right: 10px;
+  }
+
+  .tools-sidebar {
+    position: absolute;
+    top: 70px; /* Debajo de la navbar */
+    left: 0;
+    width: 300px;
+    height: calc(100% - 140px); /* Ajuste por navbar y footer */
+    background-color: rgba(255, 255, 255, 0.9);
+    overflow-y: auto;
+    padding: 10px;
+    transition: transform 0.3s ease;
+    z-index: 999;
+  }
+
+  .tools-sidebar.hidden {
+    transform: translateX(-100%);
+  }
+
+  .tools-sidebar.visible {
+    transform: translateX(0);
+  }
+
+  .map-container {
+    flex: 1;
+    position: relative;
+  }
+
+  .analysis-panel {
+    position: absolute;
+    bottom: 70px; /* Encima del footer */
+    right: 0;
+    width: 70%;
+    height: 300px;
+    background-color: rgba(255, 255, 255, 0.9);
+    overflow-y: auto;
+    padding: 10px;
+    transition: transform 0.3s ease;
+    z-index: 999;
+  }
+
+  .analysis-panel.hidden {
+    transform: translateY(100%);
+  }
+
+  .analysis-panel.visible {
+    transform: translateY(0);
+  }
+
+  .footer {
+    height: 70px;
+    display: flex;
+    align-items: center;
+  }

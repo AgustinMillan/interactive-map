@@ -1,7 +1,6 @@
+// src/components/variablesView.jsx
+
 import PropTypes from "prop-types";
-import { useState } from "react";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 
 const VariablesView = ({
   variables,
@@ -10,63 +9,44 @@ const VariablesView = ({
   viewLoadData,
   handleLoadVariable,
 }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-
-  const toggleDiv = () => {
-    setIsExpanded(!isExpanded);
-  };
-
   return (
     <div className="flex flex-col w-full items-start">
-      <button onClick={toggleDiv}>
-        {isExpanded ? (
-          <>
-            <label>Variables</label>
-            <ExpandLessIcon />
-          </>
-        ) : (
-          <>
-            <label>Variables</label>
-            <ExpandMoreIcon />
-          </>
-        )}
-      </button>
-      <div className="flex w-full">
-        {isExpanded &&
-          variables.map((variable) => {
-            if (variable.map === true) {
-              const isVisible = visibleLayers[variable.codigo_variable];
-              return (
-                <div
-                  key={variable.variable_name}
-                  className="flex flex-wrap w-full justify-around"
+      <h4>Variables</h4>
+      <div className="flex w-full flex-wrap">
+        {variables.map((variable) => {
+          if (variable.map === true) {
+            const isVisible = visibleLayers[variable.codigo_variable];
+            return (
+              <div
+                key={variable.variable_name}
+                className="flex flex-col items-start m-2"
+              >
+                {/* Botón para alternar visibilidad */}
+                <button
+                  className={`m-1 p-1 ${
+                    isVisible ? "bg-green-500" : "bg-gray-500"
+                  }`}
+                  onClick={() =>
+                    toggleLayerVisibility(variable.codigo_variable)
+                  }
                 >
-                  <div className="flex flex-col">
-                    <button
-                      className={`m-1 p-1 ${
-                        isVisible ? "bg-green-500" : "bg-gray-500"
-                      }`}
-                      onClick={() =>
-                        toggleLayerVisibility(variable.codigo_variable)
-                      }
-                    >
-                      {isVisible ? "Ocultar" : "Mostrar"}{" "}
-                      {variable.variable_name}
-                    </button>
+                  {isVisible ? "Ocultar" : "Mostrar"} {variable.variable_name}
+                </button>
 
-                    {viewLoadData[variable.codigo_variable] && (
-                      <button
-                        className="m-1 p-1 bg-blue-500"
-                        onClick={() => handleLoadVariable(variable)}
-                      >
-                        Cargar {variable.variable_name}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            }
-          })}
+                {/* Botón para cargar la variable */}
+                {viewLoadData[variable.codigo_variable] && (
+                  <button
+                    className="m-1 p-1 bg-blue-500"
+                    onClick={() => handleLoadVariable(variable)}
+                  >
+                    Cargar {variable.variable_name}
+                  </button>
+                )}
+              </div>
+            );
+          }
+          return null;
+        })}
       </div>
     </div>
   );

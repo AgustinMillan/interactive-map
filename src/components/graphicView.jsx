@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import { Line, Bar } from "react-chartjs-2";
+import { calculateDateRange } from "../common/helpers";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -36,25 +37,42 @@ const GraphicView = ({
   unit,
   graficType,
 }) => {
-  const dataDates = data.map((item) => new Date(item.fecha));
-  const associateDates = associate
-    ? associate.map((item) => new Date(item.fecha))
+  // Calcular rango de fechas
+  const { min: minDate, max: maxDate } = calculateDateRange(data, associate);
+
+  console.log("Fecha mínima calculada:", new Date(minDate).toISOString());
+  console.log("Fecha máxima calculada:", new Date(maxDate).toISOString());
+
+  // Filtrar datos según el rango de fechas
+  const filteredData = data.filter(
+    (item) => new Date(item.fecha).getTime() >= minDate && new Date(item.fecha).getTime() <= maxDate
+  );
+
+  const filteredAssociate = associate
+    ? associate.filter(
+        (item) =>
+          new Date(item.fecha).getTime() >= minDate && new Date(item.fecha).getTime() <= maxDate
+      )
     : [];
 
-  const allDates = [...dataDates, ...associateDates]
-    .filter((value, index, self) => self.indexOf(value) === index)
+  // Obtener las fechas únicas y ordenadas
+  const uniqueDates = [...new Set([...filteredData, ...filteredAssociate].map((item) => item.fecha))]
+    .map((fecha) => new Date(fecha))
     .sort((a, b) => a - b);
 
-  const dataValues = allDates.map((date) => {
-    const found = data.find(
+  console.log("Fechas únicas procesadas:", uniqueDates.map((date) => date.toISOString()));
+
+  // Obtener valores correspondientes a las fechas
+  const dataValues = uniqueDates.map((date) => {
+    const found = filteredData.find(
       (item) => new Date(item.fecha).getTime() === date.getTime()
     );
     return found ? found.value : null;
   });
 
-  const associateValues = allDates.map((date) => {
-    if (associate) {
-      const found = associate.find(
+  const associateValues = uniqueDates.map((date) => {
+    if (filteredAssociate) {
+      const found = filteredAssociate.find(
         (item) => new Date(item.fecha).getTime() === date.getTime()
       );
       return found ? found.value : null;
@@ -62,8 +80,9 @@ const GraphicView = ({
     return null;
   });
 
+  // Configuración del gráfico
   const chartData = {
-    labels: allDates,
+    labels: uniqueDates,
     datasets: [
       {
         label: variableName,
@@ -122,15 +141,15 @@ const GraphicView = ({
       zoom: {
         zoom: {
           wheel: {
-            enabled: true, // Permite zoom usando la rueda del mouse
+            enabled: true,
           },
           pinch: {
-            enabled: true, // Permite zoom con gestos de pinza en dispositivos táctiles
+            enabled: true,
           },
-          mode: "xy", // Permite zoom tanto en el eje x como en el eje y
+          mode: "xy",
         },
         pan: {
-          enabled: true, // Permite el desplazamiento
+          enabled: true,
           mode: "xy",
         },
       },
