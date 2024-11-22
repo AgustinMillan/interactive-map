@@ -54,6 +54,7 @@ const InfoView = ({
         setDateRange: handleDateRangeChange,
         setInfoView,
         setInfoAssociated,
+        associate: infoAssociated,
       });
     }
   }, [selectedFeatureInfo, variableName, originalInfoData]);

@@ -58,15 +58,16 @@ const VariablesView = ({
           return null;
         })}
       </div>
-      {dateFilter && (
+      {dateFilter && console.log("state", state) && (
         <div className="card">
           <div className="card-body">
             <DateFilter
               events={state.events || []}
+              setInfoView={state.setInfoView}
               dateRange={state.dateRange}
               setDateRange={state.setDateRange}
-              setInfoView={state.setInfoView}
               setInfoAssociated={state.setInfoAssociated}
+              associate={state.associate}
             />
           </div>
         </div>

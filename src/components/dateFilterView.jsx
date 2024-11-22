@@ -42,6 +42,7 @@ const DateFilter = ({ events, setInfoView, associate, setInfoAssociated }) => {
 
     setInfoView(filteredEvents);
 
+    console.log("associate", associate);
     if (associate) {
       const filteredAssociate = associate.filter((event) => {
         const eventoFecha = new Date(event.fecha).getTime();

@@ -45,6 +45,8 @@ const MapView = () => {
   const [graficType, setGraficType] = useState("");
   const [viewLoadData, setViewLoadData] = useState({});
   const [mapStyle, setMapStyle] = useState("osm");
+  const [search, setSearch] = useState("");
+  // const [lastSearch, setLastSearch] = useState("");
 
   // Estados para controlar la visibilidad de las sidebars
   const [showToolsSidebar, setShowToolsSidebar] = useState(true);
@@ -171,15 +173,29 @@ const MapView = () => {
   const handleShowOtherActionModal = () => setShowOtherActionModal(true);
   const handleCloseOtherActionModal = () => setShowOtherActionModal(false);
 
+  useEffect(() => {}, [geoData]);
+
   const handleSearch = (e) => {
-    const filter = originalGeoData.filter((data) => {
-      const regex = new RegExp(`${e.target.value}`, "i");
-      const matchesVariableName = regex.test(data.variableName.toLowerCase());
-
-      return matchesVariableName;
+    e.preventDefault();
+    let filter = [];
+    originalGeoData.map((geo) => {
+      const arr = [];
+      geo.data.map((item) => {
+        const regex = new RegExp(search, "i");
+        if (
+          regex.test(item.properties.cod_ele) ||
+          regex.test(item.properties?.nombre) ||
+          regex.test(item.properties?.codigo)
+        ) {
+          arr.push(item);
+        }
+      });
+      if (arr.length) {
+        filter.push({ ...geo, data: arr });
+      }
     });
-
     setGeoData(filter);
+    // setLastSearch(search);
   };
 
   return (
@@ -254,8 +270,11 @@ const MapView = () => {
       </div>
 
       {/* busqueda */}
-      <div className={`shadow bg-black`}>
-        <input type="text" onChange={handleSearch} />
+      <div className={`shadow bg-slate-500`}>
+        <form onSubmit={(e) => handleSearch(e)}>
+          <input type="text" onChange={(e) => setSearch(e.target.value)} />
+          <input type="submit" />
+        </form>
       </div>
 
       {/* Contenedor del mapa */}
@@ -269,40 +288,41 @@ const MapView = () => {
             url={tileLayerUrls[mapStyle].url}
             attribution={tileLayerUrls[mapStyle].attribution}
           />
-          {geoData.map((layer, index) =>
-            visibleLayers[layer.variableName] ? (
-              <GeoJSON
-                key={index}
-                data={layer.data}
-                onEachFeature={onEachFeature(layer)}
-                style={getFeatureStyle}
-              >
-                {selectedVariableName && (
-                  <Popup>
-                    <div className="">
-                      <div className="card mb-3">
-                        <div className="card-body">
-                          <p className="card-text">
-                            <strong>Variable:</strong>
-                            {selectedVariableName?.replace("_", " ")}
-                          </p>
-                          <ul className="list-unstyled">
-                            {Object.entries(selectedFeatureInfo).map(
-                              ([key, value]) => (
-                                <li key={key}>
-                                  <strong>{key}:</strong> {value}
-                                </li>
-                              )
-                            )}
-                          </ul>
+          {geoData &&
+            geoData.map((layer, index) =>
+              visibleLayers[layer.variableName] ? (
+                <GeoJSON
+                  key={`${layer.variableName}${layer.data.length}${index}`}
+                  data={layer.data}
+                  onEachFeature={onEachFeature(layer)}
+                  style={getFeatureStyle}
+                >
+                  {selectedVariableName && (
+                    <Popup>
+                      <div className="">
+                        <div className="card mb-3">
+                          <div className="card-body">
+                            <p className="card-text">
+                              <strong>Variable:</strong>
+                              {selectedVariableName?.replace("_", " ")}
+                            </p>
+                            <ul className="list-unstyled">
+                              {Object.entries(selectedFeatureInfo).map(
+                                ([key, value]) => (
+                                  <li key={key}>
+                                    <strong>{key}:</strong> {value}
+                                  </li>
+                                )
+                              )}
+                            </ul>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Popup>
-                )}
-              </GeoJSON>
-            ) : null
-          )}
+                    </Popup>
+                  )}
+                </GeoJSON>
+              ) : null
+            )}
         </MapContainer>
       </div>
 
