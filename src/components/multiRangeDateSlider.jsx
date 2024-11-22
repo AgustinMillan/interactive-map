@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 // src/components/multiRangeDateSlider.jsx
 
 import { useState, useEffect } from "react";

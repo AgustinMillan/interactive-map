@@ -1,12 +1,11 @@
 // src/components/infoView.jsx
 import PropTypes from "prop-types";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import dayjs from "dayjs";
 import getInfoFromFile from "./getInfoFromFile";
 import GraphicView from "./graphicView";
-import DateFilter from "./dateFilterView";
 import { calculateDateRange } from "../common/helpers";
-
+import { DateFilterContext } from "../context/dateFilter.context";
 
 const InfoView = ({
   selectedFeatureInfo,
@@ -20,6 +19,7 @@ const InfoView = ({
   const [originalAssociatedData, setOriginalAssociatedData] = useState(null);
   const [infoAssociated, setInfoAssociated] = useState(null);
   const [lastElement, setLastElement] = useState("");
+  const { setState } = useContext(DateFilterContext);
 
   const [dateRange, setDateRange] = useState({ min: null, max: null });
 
@@ -31,21 +31,32 @@ const InfoView = ({
         const associatedData = associatedVariable
           ? await getInfoFromFile(associatedVariable, element)
           : [];
-  
+
         setInfoView(info);
         setOriginalInfoData(info);
         setInfoAssociated(associatedData);
         setOriginalAssociatedData(associatedData);
-  
+        setLastElement(element);
+
         const newRange = calculateDateRange(info || [], associatedData || []);
         setDateRange(newRange);
       }
     };
-  
+
     if (selectedFeatureInfo) {
       fetchInfo();
     }
-  }, [selectedFeatureInfo, variableName]);
+
+    if (originalInfoData) {
+      setState({
+        events: originalInfoData || [],
+        dateRange,
+        setDateRange: handleDateRangeChange,
+        setInfoView,
+        setInfoAssociated,
+      });
+    }
+  }, [selectedFeatureInfo, variableName, originalInfoData]);
   const handleDateRangeChange = (newRange) => {
     setDateRange(newRange);
 
@@ -74,38 +85,6 @@ const InfoView = ({
     <div className="info-sidebar">
       <div className="container-fluid p-3">
         <div className="row">
-          <div className="col-md-4">
-            <div className="card mb-3">
-              <div className="card-body">
-                <h5 className="card-title">
-                  Información del objeto seleccionado
-                </h5>
-                <p className="card-text">
-                  <strong>Variable:</strong> {variableName?.replace("_", " ")}
-                </p>
-                <ul className="list-unstyled">
-                  {Object.entries(selectedFeatureInfo).map(
-                    ([key, value], idx) => (
-                      <li key={idx}>
-                        <strong>{key}:</strong> {value}
-                      </li>
-                    )
-                  )}
-                </ul>
-              </div>
-            </div>
-            <div className="card">
-              <div className="card-body">
-                {dateRange.min !== null && dateRange.max !== null && (
-                  <DateFilter
-                    events={originalInfoData || []}
-                    dateRange={dateRange}
-                    setDateRange={handleDateRangeChange}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
           <div className="col-md-8">
             {infoView && (
               <div className="card mb-3">

@@ -7,10 +7,17 @@ export const excelDateToISO = (excelDate) => {
 };
 
 export const calculateDateRange = (data, associate = []) => {
-  const allDates = [
-    ...data.map((item) => dayjs(item.date || item.fecha).valueOf()),
-    ...associate.map((item) => dayjs(item.date || item.fecha).valueOf()),
-  ];
+  let allDates;
+  if (associate) {
+    allDates = [
+      ...data.map((item) => dayjs(item.date || item.fecha).valueOf()),
+      ...associate.map((item) => dayjs(item.date || item.fecha).valueOf()),
+    ];
+  } else {
+    allDates = [
+      ...data.map((item) => dayjs(item.date || item.fecha).valueOf()),
+    ];
+  }
 
   if (allDates.length === 0) {
     const now = dayjs().valueOf();
@@ -21,7 +28,10 @@ export const calculateDateRange = (data, associate = []) => {
   const maxDate = Math.max(...allDates);
 
   if (minDate === maxDate) {
-    return { min: minDate - 24 * 60 * 60 * 1000, max: maxDate + 24 * 60 * 60 * 1000 }; // Ajuste de rango
+    return {
+      min: minDate - 24 * 60 * 60 * 1000,
+      max: maxDate + 24 * 60 * 60 * 1000,
+    }; // Ajuste de rango
   }
 
   return { min: minDate, max: maxDate };

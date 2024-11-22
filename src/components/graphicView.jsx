@@ -40,27 +40,29 @@ const GraphicView = ({
   // Calcular rango de fechas
   const { min: minDate, max: maxDate } = calculateDateRange(data, associate);
 
-  console.log("Fecha mínima calculada:", new Date(minDate).toISOString());
-  console.log("Fecha máxima calculada:", new Date(maxDate).toISOString());
-
   // Filtrar datos según el rango de fechas
   const filteredData = data.filter(
-    (item) => new Date(item.fecha).getTime() >= minDate && new Date(item.fecha).getTime() <= maxDate
+    (item) =>
+      new Date(item.fecha).getTime() >= minDate &&
+      new Date(item.fecha).getTime() <= maxDate
   );
 
   const filteredAssociate = associate
     ? associate.filter(
         (item) =>
-          new Date(item.fecha).getTime() >= minDate && new Date(item.fecha).getTime() <= maxDate
+          new Date(item.fecha).getTime() >= minDate &&
+          new Date(item.fecha).getTime() <= maxDate
       )
     : [];
 
   // Obtener las fechas únicas y ordenadas
-  const uniqueDates = [...new Set([...filteredData, ...filteredAssociate].map((item) => item.fecha))]
+  const uniqueDates = [
+    ...new Set(
+      [...filteredData, ...filteredAssociate].map((item) => item.fecha)
+    ),
+  ]
     .map((fecha) => new Date(fecha))
     .sort((a, b) => a - b);
-
-  console.log("Fechas únicas procesadas:", uniqueDates.map((date) => date.toISOString()));
 
   // Obtener valores correspondientes a las fechas
   const dataValues = uniqueDates.map((date) => {

@@ -1,7 +1,7 @@
 // src/components/mapView.jsx
 
 import { useState, useEffect } from "react";
-import { MapContainer, TileLayer, GeoJSON } from "react-leaflet";
+import { MapContainer, TileLayer, GeoJSON, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import getStartupVariables from "./getStartupVariables.js";
 import loadMapData from "./fileMapUpload";
@@ -13,14 +13,16 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 
 // Importamos Bootstrap y FontAwesome
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Navbar, Nav, NavDropdown, Container, Button } from "react-bootstrap";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faBars,
-  faInfoCircle,
-  faLayerGroup,
-  faMap,
-} from "@fortawesome/free-solid-svg-icons";
+  Navbar,
+  Nav,
+  NavDropdown,
+  Container,
+  Button,
+  Modal,
+} from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBars, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 
 // Configuración de iconos de Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -33,6 +35,7 @@ L.Icon.Default.mergeOptions({
 
 const MapView = () => {
   const [geoData, setGeoData] = useState([]);
+  const [originalGeoData, setOriginalGeoData] = useState([]);
   const [visibleLayers, setVisibleLayers] = useState({});
   const [variables, setVariables] = useState([]);
   const [selectedFeatureInfo, setSelectedFeatureInfo] = useState(null);
@@ -45,7 +48,11 @@ const MapView = () => {
 
   // Estados para controlar la visibilidad de las sidebars
   const [showToolsSidebar, setShowToolsSidebar] = useState(true);
-  const [showAnalysisPanel, setShowAnalysisPanel] = useState(true);
+  const [showAnalysisPanel, setShowAnalysisPanel] = useState(false);
+
+  const [selectedFeatureId, setSelectedFeatureId] = useState(null);
+  const [showActionModal, setShowActionModal] = useState(false);
+  const [showOtherActionModal, setShowOtherActionModal] = useState(false);
 
   useEffect(() => {
     const fetchVariables = async () => {
@@ -68,6 +75,17 @@ const MapView = () => {
     const geoJson = await loadMapData(codigo_variable);
     if (geoJson) {
       setGeoData((prev) => [
+        ...prev,
+        {
+          data: geoJson,
+          variableName: codigo_variable,
+          associatedVariable: asociado === "-" || !asociado ? null : asociado,
+          unit: unidad,
+          graficType: grafico,
+        },
+      ]);
+
+      setOriginalGeoData((prev) => [
         ...prev,
         {
           data: geoJson,
@@ -105,6 +123,8 @@ const MapView = () => {
         setSelectedVariableName(variable.variableName);
         setUnit(variable.unit);
         setGraficType(variable.graficType?.toUpperCase());
+        setShowAnalysisPanel(true);
+        setSelectedFeatureId(feature.properties.cod_ele);
       },
     });
   };
@@ -134,6 +154,34 @@ const MapView = () => {
     },
   };
 
+  const getFeatureStyle = (feature) => {
+    const isSelected = feature.properties.cod_ele === selectedFeatureId;
+    return {
+      fillColor: isSelected ? "red" : "blue",
+      weight: 2,
+      opacity: 1,
+      color: "white",
+      fillOpacity: 0.6,
+    };
+  };
+
+  const handleShowActionModal = () => setShowActionModal(true);
+  const handleCloseActionModal = () => setShowActionModal(false);
+
+  const handleShowOtherActionModal = () => setShowOtherActionModal(true);
+  const handleCloseOtherActionModal = () => setShowOtherActionModal(false);
+
+  const handleSearch = (e) => {
+    const filter = originalGeoData.filter((data) => {
+      const regex = new RegExp(`${e.target.value}`, "i");
+      const matchesVariableName = regex.test(data.variableName.toLowerCase());
+
+      return matchesVariableName;
+    });
+
+    setGeoData(filter);
+  };
+
   return (
     <div className="map-view">
       {/* Barra de navegación superior */}
@@ -154,8 +202,10 @@ const MapView = () => {
               <Nav.Link href="#home">Inicio</Nav.Link>
               <Nav.Link href="#features">Características</Nav.Link>
               <NavDropdown title="Menú" id="basic-nav-dropdown">
-                <NavDropdown.Item href="#action/3.1">Acción</NavDropdown.Item>
-                <NavDropdown.Item href="#action/3.2">
+                <NavDropdown.Item onClick={handleShowActionModal}>
+                  Acción
+                </NavDropdown.Item>
+                <NavDropdown.Item onClick={handleShowOtherActionModal}>
                   Otra acción
                 </NavDropdown.Item>
                 <NavDropdown.Divider />
@@ -198,7 +248,14 @@ const MapView = () => {
           toggleLayerVisibility={toggleLayerVisibility}
           viewLoadData={viewLoadData}
           handleLoadVariable={handleLoadVariable}
+          mapStyle={mapStyle}
+          handleMapStyleChange={handleMapStyleChange}
         />
+      </div>
+
+      {/* busqueda */}
+      <div className={`shadow bg-black`}>
+        <input type="text" onChange={handleSearch} />
       </div>
 
       {/* Contenedor del mapa */}
@@ -218,11 +275,66 @@ const MapView = () => {
                 key={index}
                 data={layer.data}
                 onEachFeature={onEachFeature(layer)}
-              />
+                style={getFeatureStyle}
+              >
+                {selectedVariableName && (
+                  <Popup>
+                    <div className="">
+                      <div className="card mb-3">
+                        <div className="card-body">
+                          <p className="card-text">
+                            <strong>Variable:</strong>
+                            {selectedVariableName?.replace("_", " ")}
+                          </p>
+                          <ul className="list-unstyled">
+                            {Object.entries(selectedFeatureInfo).map(
+                              ([key, value]) => (
+                                <li key={key}>
+                                  <strong>{key}:</strong> {value}
+                                </li>
+                              )
+                            )}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </Popup>
+                )}
+              </GeoJSON>
             ) : null
           )}
         </MapContainer>
       </div>
+
+      {/* Modal para "Acción" */}
+      <Modal show={showActionModal} onHide={handleCloseActionModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Acción</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Este es el contenido del modal para &quot;Acción&quot;.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseActionModal}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+      {/* Modal para "Otra acción" */}
+      <Modal show={showOtherActionModal} onHide={handleCloseOtherActionModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Otra acción</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Este es el contenido del modal para &quot;Otra acción&quot;.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseOtherActionModal}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
       {/* Panel de análisis */}
       <div
@@ -243,7 +355,10 @@ const MapView = () => {
 
       {/* Pie de página */}
       <footer className="footer bg-light">
-        <Container fluid className="d-flex justify-content-between align-items-center">
+        <Container
+          fluid
+          className="d-flex justify-content-between align-items-center"
+        >
           <div>
             {/* Logo a la izquierda */}
             <img
@@ -255,7 +370,9 @@ const MapView = () => {
           </div>
           <div>
             {/* Legales al centro */}
-            <small>&copy; 2023 Tu Empresa. Todos los derechos reservados.</small>
+            <small>
+              &copy; 2023 Tu Empresa. Todos los derechos reservados.
+            </small>
           </div>
           <div className="d-flex">
             {/* Dos logos a la derecha */}
@@ -274,7 +391,6 @@ const MapView = () => {
           </div>
         </Container>
       </footer>
-
     </div>
   );
 };

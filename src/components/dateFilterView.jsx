@@ -1,45 +1,83 @@
-
-// src/components/dateFilterView.jsx
-
 import PropTypes from "prop-types";
-import { useEffect } from "react";
-import MultiRangeDateSlider from "./MultiRangeDateSlider";
-import { calculateDateRange } from "../common/helpers";
+import { useEffect, useState } from "react";
+import MultiRangeDateSlider from "./multiRangeDateSlider";
 
-const DateFilter = ({ events, dateRange, setDateRange }) => {
-  useEffect(() => {
-    if (events.length > 0) {
-      const { min, max } = calculateDateRange(events);
-      if (!dateRange.min || !dateRange.max) {
-        setDateRange({ min, max });
-      }
+const DateFilter = ({ events, setInfoView, associate, setInfoAssociated }) => {
+  const { minDate, maxDate } = events.reduce(
+    (acc, curr) => {
+      const currentDate = new Date(curr.fecha).getTime();
+      acc.minDate = Math.min(acc.minDate, currentDate);
+      acc.maxDate = Math.max(acc.maxDate, currentDate);
+      return acc;
+    },
+    {
+      minDate: Infinity,
+      maxDate: -Infinity,
     }
-  }, [events, dateRange, setDateRange]);
+  );
 
-  const handleRangeChange = ([newMin, newMax]) => {
-    setDateRange({ min: newMin, max: newMax });
+  // Manejar valores en caso de que no haya eventos
+  const minDateValue = minDate === Infinity ? null : minDate;
+  const maxDateValue = maxDate === -Infinity ? null : maxDate;
+
+  const [minDateState, setMinDate] = useState(minDateValue);
+  const [maxDateState, setMaxDate] = useState(maxDateValue);
+
+  useEffect(() => {
+    setMinDate(minDateValue);
+    setMaxDate(maxDateValue);
+  }, [events, minDateValue, maxDateValue]);
+
+  const handleRangeChange = ([newMinDate, newMaxDate]) => {
+    setMinDate(newMinDate);
+    setMaxDate(newMaxDate);
   };
+
+  useEffect(() => {
+    // Aplicar el filtro cada vez que cambian los límites del rango
+    const filteredEvents = events.filter((event) => {
+      const eventoFecha = new Date(event.fecha).getTime();
+      return eventoFecha >= minDateState && eventoFecha <= maxDateState;
+    });
+
+    setInfoView(filteredEvents);
+
+    if (associate) {
+      const filteredAssociate = associate.filter((event) => {
+        const eventoFecha = new Date(event.fecha).getTime();
+        return eventoFecha >= minDateState && eventoFecha <= maxDateState;
+      });
+      setInfoAssociated(filteredAssociate);
+    } else {
+      setInfoAssociated(null);
+    }
+  }, [
+    minDateState,
+    maxDateState,
+    events,
+    associate,
+    setInfoView,
+    setInfoAssociated,
+  ]);
 
   return (
     <div className="flex flex-col">
       <label>Filtrar por rango de fechas:</label>
-      {dateRange.min && dateRange.max ? (
-        <MultiRangeDateSlider
-          minDate={dateRange.min}
-          maxDate={dateRange.max}
-          onChange={handleRangeChange}
-        />
-      ) : (
-        <p className="text-gray-500">Cargando rango de fechas...</p>
-      )}
+      <MultiRangeDateSlider
+        initialValue={{ minDate: minDateValue, maxDate: maxDateValue }}
+        minDate={minDateValue}
+        maxDate={maxDateValue}
+        onChange={handleRangeChange}
+      />
     </div>
   );
 };
 
 DateFilter.propTypes = {
   events: PropTypes.array.isRequired,
-  dateRange: PropTypes.object.isRequired,
-  setDateRange: PropTypes.func.isRequired,
+  setInfoView: PropTypes.func.isRequired,
+  associate: PropTypes.any,
+  setInfoAssociated: PropTypes.func.isRequired,
 };
 
 export default DateFilter;
