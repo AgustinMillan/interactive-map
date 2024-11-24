@@ -423,39 +423,40 @@ const MapView = () => {
           />
         )}
       </div>
-     
-     {/* Pie de página */}
-    <footer className="footer bg-dark">
-        <Container fluid>
-          <div className="row justify-content-between align-items-center">
-            {/* Logo de Dictuc */}
-            <div className="col col-md-4 order-1 order-md-1 d-flex justify-content-center justify-content-md-start">
-              <img
-                src="/src/assets/imgs/logo-dictuc.png"
-                alt="Dictuc"
-                className="d-inline-block align-top"
-                style={{ width: "130px", height: "auto", margin: "1rem" }}
-              />
-            </div>
-            {/* Texto en mobile como fila aparte, pero centrado en desktop */}
-            <div className="col-12 order-3 order-md-2 text-center my-1 my-md-3">              <small>&copy; 2025 Dictuc [nombre del equipo]. Todos los derechos reservados.</small>
-            </div>
-            
-            {/* Logos de Corfo y DGA */}
-            <div className="col col-md-4 order-2 order-md-3 d-flex justify-content-center justify-content-md-end">
-              <img
-                src="/src/assets/imgs/corfo.png"
-                alt="Corfo"
-                className="d-inline-block align-top me-2"
-                style={{ width: "115px", height: "auto" }}
-              />
-              <img
-                src="/src/assets/imgs/dga.jpg"
-                alt="Dirección General de Aguas DGA"
-                className="d-inline-block align-top"
-                style={{ width: "80px", height: "auto" }}
-              />
-            </div>
+      
+      {/* Pie de página */}
+      <footer className="footer bg-dark">
+        <Container
+          fluid
+          className="d-flex flex-column flex-md-row justify-content-between align-items-center"
+        >
+          <div className="d-flex justify-content-center justify-content-md-start">
+            {/* Logos a la izquierda y derecha en una fila */}
+            <img
+              src="/src/assets/imgs/logo-dictuc.png"
+              alt="Dictuc"
+              className="d-inline-block align-top"
+              style={{ width: "130px", height: "auto", margin: "1rem" }}
+            />
+          </div>
+          <div className="text-center my-2">
+            {/* Legales al centro, ocupa toda la fila en mobile */}
+            <small>&copy; 2025 Dictuc [nombre del equipo]. Todos los derechos reservados.</small>
+          </div>
+          <div className="d-flex justify-content-center justify-content-md-end">
+            {/* Logos a la derecha */}
+            <img
+              src="/src/assets/imgs/corfo.png"
+              alt="Corfo"
+              className="d-inline-block align-top me-2"
+              style={{ width: "80px", height: "auto" }}
+            />
+            <img
+              src="/src/assets/imgs/dga.jpg"
+              alt="Dirección General de Aguas DGA"
+              className="d-inline-block align-top"
+              style={{ width: "80px", height: "auto" }}
+            />
           </div>
         </Container>
       </footer>
@@ -464,8 +465,3 @@ const MapView = () => {
 };
 
 export default MapView;
-
-
-
-
-
