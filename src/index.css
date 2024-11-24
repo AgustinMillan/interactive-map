@@ -297,7 +297,7 @@ p {
     position: absolute;
     right: 1rem;
     top: 6rem;
-    z-index: 9999;
+    z-index: 999;
     background: #111111c4;
     padding: 13px 23px;
     border-radius: 10px;
@@ -361,7 +361,7 @@ p {
       flex-basis: 100%;
       flex-grow: 1;
       align-items: center;
-      z-index: 999999;
+      z-index: 9999;
       position: absolute;
       width: 77%;
       top: 71px;
@@ -397,7 +397,7 @@ p {
         background-color: #2A7DE1;
         color: white;
     }
-    
+
     .dropdown-menu {
         background: #111111c4;
         z-index: 99999;
@@ -413,3 +413,9 @@ p {
       margin: 0 !important;
     }
   }
+
+  @media (min-width: 576px) {
+    .modal {
+      --bs-modal-zindex: 9999;
+    }
+}
