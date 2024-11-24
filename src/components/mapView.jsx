@@ -436,6 +436,7 @@ const MapView = () => {
               src="/src/assets/imgs/logo-dictuc.png"
               alt="Dictuc"
               className="d-inline-block align-top"
+              style={{ width: "130px", height: "auto", margin: "1rem" }} // Agregado estilo inline
             />
           </div>
           <div>
