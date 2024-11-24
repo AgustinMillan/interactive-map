@@ -77,7 +77,7 @@ const VariablesView = ({
       
       
       <div className="row map-style-container">
-      <h4 className="text-center p-0">Tipos de mapas</h4>
+      <h4 className="text-center pb-2">Tipos de mapas</h4>
         {[
           { value: "dark", label: "Oscura", bg: "url('/src/assets/imgs/mapa-oscura.png')" },
           { value: "osm", label: "Estándar", bg: "url('/src/assets/imgs/mapa-estandar.png')" },
@@ -88,7 +88,7 @@ const VariablesView = ({
             <button
               className={`map-style-toggle ${mapStyle === style.value ? "active" : ""}`}
               style={{
-                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.8)),${style.bg}`,
+                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),${style.bg}`,
                 filter: mapStyle === style.value ? "none" : "grayscale(100%)"
               }}
               onClick={() => handleMapStyleChange({ target: { value: style.value } })}

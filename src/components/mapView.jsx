@@ -441,7 +441,7 @@ const MapView = () => {
           <div>
             {/* Legales al centro */}
             <small>
-              &copy; 2023 Tu Empresa. Todos los derechos reservados.
+              &copy; 2025 Dictuc [nombre del equipo]. Todos los derechos reservados.
             </small>
           </div>
           <div className="d-flex">
