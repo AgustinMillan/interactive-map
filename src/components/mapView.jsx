@@ -432,12 +432,14 @@ const MapView = () => {
         >
           <div className="d-flex justify-content-center justify-content-md-start">
             {/* Logos a la izquierda y derecha en una fila */}
+            <a href="https://www.dictuc.cl" target="new">
             <img
               src="/src/assets/imgs/logo-dictuc.png"
               alt="Dictuc"
               className="d-inline-block align-top"
               style={{ width: "130px", height: "auto", margin: "1rem" }}
             />
+            </a>
           </div>
           <div className="text-center my-2">
             {/* Legales al centro, ocupa toda la fila en mobile */}
@@ -445,18 +447,22 @@ const MapView = () => {
           </div>
           <div className="d-flex justify-content-center justify-content-md-end">
             {/* Logos a la derecha */}
+            <a href="https://www.corfo.cl" target="new">
             <img
               src="/src/assets/imgs/corfo.png"
               alt="Corfo"
               className="d-inline-block align-top me-2"
               style={{ width: "80px", height: "auto" }}
             />
+            </a>
+            <a href="https://dga.mop.gob.cl/" target="new">
             <img
               src="/src/assets/imgs/dga.jpg"
               alt="Dirección General de Aguas DGA"
               className="d-inline-block align-top"
               style={{ width: "80px", height: "auto" }}
             />
+            </a>
           </div>
         </Container>
       </footer>
