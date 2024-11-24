@@ -15,6 +15,7 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import Zoom from "chartjs-plugin-zoom";
+import { faLeftLong } from "@fortawesome/free-solid-svg-icons";
 
 ChartJS.register(
   CategoryScale,
@@ -92,6 +93,15 @@ const GraphicView = ({
         backgroundColor: "rgba(54, 162, 235, 0.6)",
         borderColor: "rgba(54, 162, 235, 1)",
         spanGaps: true,
+        layout:{
+          padding:{
+            top:0,
+            bottom: 0,
+            left: 0,
+            right: 0,
+          }
+        },
+        borderWidth: 2, // Añadir borde más grueso para mejor visibilidad en modo oscuro
       },
       associate && {
         label: associatedVariable,
@@ -99,10 +109,11 @@ const GraphicView = ({
         backgroundColor: "rgba(255, 99, 132, 0.6)",
         borderColor: "rgba(255, 99, 132, 1)",
         spanGaps: true,
+        borderWidth: 2, // Añadir borde más grueso para mejor visibilidad en modo oscuro
       },
     ].filter(Boolean),
+    backgroundColor: "rgba(0, 0, 0, 0.8)", // Fondo oscuro para el gráfico
   };
-
   const options = {
     responsive: true,
     scales: {
@@ -111,24 +122,48 @@ const GraphicView = ({
         time: {
           unit: "month",
         },
+        ticks: {
+          font: {
+            size: 11, // Tamaño de la tipografía de los ejes
+            color: "white", // Color de la tipografía en modo oscuro
+          },
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.2)", // Color de la cuadrícula en modo oscuro
+        },
       },
       y: {
         title: {
           display: true,
           text: `Valor (${unit})`,
+          font: {
+            size: 11, // Tamaño del título del eje X
+            color: "white", // Color del título en modo oscuro
+          },
         },
         ticks: {
           callback: (value) => `${value} ${unit}`,
+          font: {
+            size: 11, // Tamaño de la tipografía de los ejes
+            color: "white", // Color de la tipografía en modo oscuro
+          },
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.2)", // Color de la cuadrícula en modo oscuro
         },
       },
     },
     plugins: {
       legend: {
         position: "top",
+        labels: {
+          color: "white", // Color de las etiquetas de la leyenda en modo oscuro
+        },
       },
       title: {
         display: true,
         text: "Datos a lo largo del tiempo",
+        color: "white", // Color del título en modo oscuro
       },
       tooltip: {
         callbacks: {
@@ -139,6 +174,9 @@ const GraphicView = ({
             return `${label}: ${value}`;
           },
         },
+        backgroundColor: "rgba(0, 0, 0, 0.8)", // Fondo oscuro para el tooltip
+        titleColor: "white", // Color del título del tooltip en modo oscuro
+        bodyColor: "white", // Color del cuerpo del tooltip en modo oscuro
       },
       zoom: {
         zoom: {
@@ -156,11 +194,13 @@ const GraphicView = ({
         },
       },
     },
-  };
+
+    backgroundColor: "rgba(0, 0, 0, 0.8)", // Fondo oscuro para el gráfico
+  };  
 
   return (
-    <div className="flex justify-center w-full">
-      <div className="w-4/5">
+    <div className="flex">
+      <div className="w-full" style={{ maxHeight: '300px' }}>        
         {graficType === "LINEA" ? (
           <Line data={chartData} options={options} />
         ) : (

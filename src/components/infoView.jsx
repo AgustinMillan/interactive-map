@@ -84,11 +84,11 @@ const InfoView = ({
 
   return (
     <div className="info-sidebar">
-      <div className="container-fluid p-3">
+      <div className="container-fluid">
         <div className="row">
-          <div className="col-md-8">
+          <div className="col">
             {infoView && (
-              <div className="card mb-3">
+              <div className="card">
                 <div className="card-body">
                   <GraphicView
                     data={infoView}

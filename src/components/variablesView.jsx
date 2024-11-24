@@ -30,27 +30,29 @@ const VariablesView = ({
     }
   }, [state]);
   return (
-    <div className="flex flex-col w-full items-start">
-      <h4>Variables</h4>
+    <div className="flex flex-col w-full items-center pt-4">
+      <h4 className="text-center">Variables</h4>
       <div className="flex w-full flex-wrap">
-        {variables.map((variable) => {
+        {variables.map((variable, index) => {
           if (variable.map === true) {
             const isVisible = visibleLayers[variable.codigo_variable];
+            const icons = ["fa-leaf", "fa-water", "fa-cloud"]; // Hardcodeado por ahora
             return (
               <div
                 key={variable.variable_name}
-                className="flex flex-col items-start m-2"
+                className="flex items-center justify-center w-1/3"
+                style={{ padding: ".1rem" }}
               >
-                {/* Botón para alternar visibilidad */}
                 <button
-                  className={`m-1 p-1 ${
-                    isVisible ? "bg-green-500" : "bg-gray-500"
+                  className={`flex flex-col items-center justify-center toggle-button ${
+                    isVisible ? "active" : "inactive"
                   }`}
                   onClick={() =>
                     toggleLayerVisibility(variable.codigo_variable)
                   }
                 >
-                  {isVisible ? "Ocultar" : "Mostrar"} {variable.variable_name}
+                  <span className={`fas ${icons[index % icons.length]}`} />
+                  <span className="text-xs mt-2">{variable.variable_name}</span>
                 </button>
               </div>
             );
@@ -72,13 +74,30 @@ const VariablesView = ({
           </div>
         </div>
       )}
-
-      <select value={mapStyle} onChange={handleMapStyleChange}>
-        <option value="osm">Mapa Estándar</option>
-        <option value="satellite">Vista Satélite</option>
-        <option value="dark">Vista Oscura</option>
-        <option value="topo">Vista Topografica</option>
-      </select>
+      
+      
+      <div className="row map-style-container">
+      <h4 className="text-center p-0">Tipos de mapas</h4>
+        {[
+          { value: "dark", label: "Oscura", bg: "url('/src/assets/imgs/mapa-oscura.png')" },
+          { value: "osm", label: "Estándar", bg: "url('/src/assets/imgs/mapa-estandar.png')" },
+          { value: "satellite", label: "Satélite", bg: "url('/src/assets/imgs/mapa-relieve.png')" },
+          { value: "topo", label: "Topográfica", bg: "url('/src/assets/imgs/mapa-topografica.png')" },  
+        ].map((style) => (
+          <div className="col m-0 p-0" key={style.value}>
+            <button
+              className={`map-style-toggle ${mapStyle === style.value ? "active" : ""}`}
+              style={{
+                backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.8)),${style.bg}`,
+                filter: mapStyle === style.value ? "none" : "grayscale(100%)"
+              }}
+              onClick={() => handleMapStyleChange({ target: { value: style.value } })}
+            >
+              {style.label}
+            </button>
+          </div>
+        ))}
+      </div>
     </div>
   );
 };

@@ -22,7 +22,12 @@ import {
   Modal,
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
+import {
+  faBars,
+  faInfoCircle,
+  faChevronLeft,
+  faChevronRight,
+} from "@fortawesome/free-solid-svg-icons";
 
 // Configuración de iconos de Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -44,8 +49,9 @@ const MapView = () => {
   const [unit, setUnit] = useState("");
   const [graficType, setGraficType] = useState("");
   const [viewLoadData, setViewLoadData] = useState({});
-  const [mapStyle, setMapStyle] = useState("osm");
+  const [mapStyle, setMapStyle] = useState("dark");
   const [search, setSearch] = useState("");
+  const [showProjectModal, setShowProjectModal] = useState(false);
   // const [lastSearch, setLastSearch] = useState("");
 
   // Estados para controlar la visibilidad de las sidebars
@@ -159,11 +165,11 @@ const MapView = () => {
   const getFeatureStyle = (feature) => {
     const isSelected = feature.properties.cod_ele === selectedFeatureId;
     return {
-      fillColor: isSelected ? "red" : "blue",
-      weight: 2,
+      fillColor: isSelected ? "#2A7DE1" : "#708eb1",
+      weight: 0,
       opacity: 1,
-      color: "white",
-      fillOpacity: 0.6,
+      color: "transparent",
+      fillOpacity: 0.3,
     };
   };
 
@@ -201,63 +207,65 @@ const MapView = () => {
   return (
     <div className="map-view">
       {/* Barra de navegación superior */}
-      <Navbar bg="light" expand="lg" className="shadow-sm">
+      <Navbar bg="dark" expand="lg" className="shadow-sm">
         <Container fluid>
           <Navbar.Brand href="#home">
             {/* Aquí puedes colocar tu logo */}
             <img
-              src="/ruta/a/tu/logo.png"
-              alt="Logo"
-              height="30"
+              src="/src/assets/imgs/logo-app.png"
+              alt="Explorador Ambiental"
               className="d-inline-block align-top"
             />
           </Navbar.Brand>
           <Navbar.Toggle aria-controls="navbar-nav" />
           <Navbar.Collapse id="navbar-nav">
             <Nav className="ms-auto">
-              <Nav.Link href="#home">Inicio</Nav.Link>
-              <Nav.Link href="#features">Características</Nav.Link>
-              <NavDropdown title="Menú" id="basic-nav-dropdown">
-                <NavDropdown.Item onClick={handleShowActionModal}>
-                  Acción
-                </NavDropdown.Item>
-                <NavDropdown.Item onClick={handleShowOtherActionModal}>
-                  Otra acción
-                </NavDropdown.Item>
-                <NavDropdown.Divider />
-                <NavDropdown.Item href="#action/3.4">
-                  Algo más aquí
-                </NavDropdown.Item>
+              {/* Modelos */}
+              <Nav.Link onClick={handleShowActionModal}>Modelos</Nav.Link>
+
+              {/* Descargas */}
+              <Nav.Link onClick={handleShowOtherActionModal}>Descargas</Nav.Link>
+
+              {/* Proyecto */}
+              <Nav.Link onClick={() => setShowProjectModal(true)}>Proyecto</Nav.Link>
+
+              {/* Material de Apoyo */}
+              <NavDropdown title="Material de apoyo" id="support-material-dropdown">
+                <NavDropdown.Item href="#support-item-1">Item 1</NavDropdown.Item>
+                <NavDropdown.Item href="#support-item-2">Item 2</NavDropdown.Item>
+                <NavDropdown.Item href="#support-item-3">Item 3</NavDropdown.Item>
               </NavDropdown>
-              {/* Añade más elementos de menú según necesites */}
             </Nav>
           </Navbar.Collapse>
         </Container>
       </Navbar>
 
-      {/* Botones para mostrar/ocultar las sidebars */}
-      <Button
-        variant="primary"
-        className="toggle-sidebar-btn"
-        onClick={() => setShowToolsSidebar(!showToolsSidebar)}
-      >
-        <FontAwesomeIcon icon={faBars} />
-      </Button>
-
-      <Button
-        variant="primary"
-        className="toggle-analysis-btn"
-        onClick={() => setShowAnalysisPanel(!showAnalysisPanel)}
-      >
-        <FontAwesomeIcon icon={faInfoCircle} />
-      </Button>
+      
 
       {/* Sidebar de herramientas */}
       <div
-        className={`tools-sidebar ${
-          showToolsSidebar ? "visible" : "hidden"
-        } shadow`}
+        className="tools-sidebar shadow"
+        style={{
+          transform: showToolsSidebar ? "translateX(0)" : "translateX(-390px)", // Mueve el contenedor
+          transition: "transform 0.3s cubic-bezier(0.68, -0.05, 0.27, 1)", // Transición suave con más impetu
+        }}
       >
+        <Button
+          variant="primary"
+          className="sidebar-toggle-btn"
+          onClick={() => setShowToolsSidebar(!showToolsSidebar)}
+          style={{
+            position: "absolute",
+            left: showToolsSidebar ? "0" : "0", // Botón sigue la posición del toolbar
+            top: "50%",
+            zIndex: 10,
+            left: "390px",
+            width: "20px",
+            height: "290px",
+          }}
+        >
+        <FontAwesomeIcon icon={showToolsSidebar ? faChevronLeft : faChevronRight} />
+        </Button>
         <VariablesView
           variables={variables}
           visibleLayers={visibleLayers}
@@ -269,11 +277,14 @@ const MapView = () => {
         />
       </div>
 
+
       {/* busqueda */}
       <div className={`shadow bg-slate-500`}>
         <form onSubmit={(e) => handleSearch(e)}>
           <input type="text" onChange={(e) => setSearch(e.target.value)} />
-          <input type="submit" />
+          <button type="submit" className="search-btn">
+            <i className="fas fa-search"></i>
+          </button>        
         </form>
       </div>
 
@@ -300,7 +311,7 @@ const MapView = () => {
                   {selectedVariableName && (
                     <Popup>
                       <div className="">
-                        <div className="card mb-3">
+                        <div className="card">
                           <div className="card-body">
                             <p className="card-text">
                               <strong>Variable:</strong>
@@ -325,11 +336,11 @@ const MapView = () => {
             )}
         </MapContainer>
       </div>
-
+      
       {/* Modal para "Acción" */}
       <Modal show={showActionModal} onHide={handleCloseActionModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Acción</Modal.Title>
+          <Modal.Title>Modelos</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p>Este es el contenido del modal para &quot;Acción&quot;.</p>
@@ -344,7 +355,7 @@ const MapView = () => {
       {/* Modal para "Otra acción" */}
       <Modal show={showOtherActionModal} onHide={handleCloseOtherActionModal}>
         <Modal.Header closeButton>
-          <Modal.Title>Otra acción</Modal.Title>
+          <Modal.Title>Descargas</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <p>Este es el contenido del modal para &quot;Otra acción&quot;.</p>
@@ -356,12 +367,52 @@ const MapView = () => {
         </Modal.Footer>
       </Modal>
 
+      {/* Modal para "Proyecto" */}
+      <Modal show={showProjectModal} onHide={() => setShowProjectModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Proyecto</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Contenido relacionado con el Proyecto.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowProjectModal(false)}>
+            Cerrar
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
       {/* Panel de análisis */}
       <div
-        className={`analysis-panel ${
-          showAnalysisPanel ? "visible" : "hidden"
-        } shadow`}
+        className="analysis-panelshadow"
+        style={{
+          position: "absolute",
+          bottom: "7.7rem",
+          right: "1rem",
+          transform: showAnalysisPanel ? "translateX(0)" : "translateX(700px)", // Mover el panel
+          transition: "transform 0.3s ease", // Transición suave
+        }}
       >
+        <Button
+          variant="primary"
+          className="analysis-toggle-btn"
+          onClick={() => setShowAnalysisPanel(!showAnalysisPanel)}
+          style={{
+            position: "absolute",
+            left: "-33px", // Botón fuera del panel
+            top: "50%",
+            transform: "translateY(-50%)",
+            zIndex: 10,
+            width:"30px",
+            height:"290px",
+            background:"unset",
+            border:"unset",
+          }}
+        >
+          <FontAwesomeIcon
+            icon={showAnalysisPanel ? faChevronRight : faChevronLeft} // Ícono basado en el estado
+          />
+        </Button>
         {selectedFeatureInfo && (
           <InfoView
             selectedFeatureInfo={selectedFeatureInfo}
@@ -372,9 +423,9 @@ const MapView = () => {
           />
         )}
       </div>
-
+      
       {/* Pie de página */}
-      <footer className="footer bg-light">
+      <footer className="footer bg-dark">
         <Container
           fluid
           className="d-flex justify-content-between align-items-center"
@@ -382,9 +433,8 @@ const MapView = () => {
           <div>
             {/* Logo a la izquierda */}
             <img
-              src="/ruta/a/tu/logo.png"
-              alt="Logo"
-              height="30"
+              src="/src/assets/imgs/logo-dictuc.png"
+              alt="Dictuc"
               className="d-inline-block align-top"
             />
           </div>
@@ -397,15 +447,13 @@ const MapView = () => {
           <div className="d-flex">
             {/* Dos logos a la derecha */}
             <img
-              src="/ruta/a/logo1.png"
-              alt="Logo 1"
-              height="30"
+              src="/src/assets/imgs/corfo.png"
+              alt="Corfo"
               className="d-inline-block align-top me-2"
             />
             <img
-              src="/ruta/a/logo2.png"
-              alt="Logo 2"
-              height="30"
+              src="/src/assets/imgs/dga.jpg"
+              alt="Dirección General de Aguas DGA"
               className="d-inline-block align-top"
             />
           </div>
