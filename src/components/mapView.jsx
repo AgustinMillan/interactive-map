@@ -246,7 +246,7 @@ const MapView = () => {
       <div
         className="tools-sidebar shadow"
         style={{
-          transform: showToolsSidebar ? "translateX(0)" : "translateX(-300px)", // Mueve el contenedor
+          transform: showToolsSidebar ? "translateX(0)" : "translateX(-390px)", // Mueve el contenedor
           transition: "transform 0.3s cubic-bezier(0.68, -0.05, 0.27, 1)", // Transición suave con más impetu
         }}
       >
@@ -389,7 +389,7 @@ const MapView = () => {
           position: "absolute",
           bottom: "7.7rem",
           right: "1rem",
-          transform: showAnalysisPanel ? "translateX(0)" : "translateX(700px)", // Mover el panel
+          transform: showAnalysisPanel ? "translateX(0)" : "translateX(680px)", // Mover el panel
           transition: "transform 0.3s ease", // Transición suave
         }}
       >
