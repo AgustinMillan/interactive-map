@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { useContext, useEffect, useState } from "react";
 import { DateFilterContext } from "../context/dateFilter.context";
 import DateFilter from "./dateFilterView";
+import { formatText } from "../common/helpers";
 
 const VariablesView = ({
   variables,
@@ -13,10 +14,16 @@ const VariablesView = ({
   handleLoadVariable,
   mapStyle,
   handleMapStyleChange,
+  originalGeoData,
 }) => {
   const { state } = useContext(DateFilterContext);
   const [dateFilter, setDateFilter] = useState(false);
+  const [toggleFilter, setToggleFilter] = useState(false);
+
   useEffect(() => {
+    if (originalGeoData.length) {
+      return;
+    }
     variables?.map((variable) => {
       viewLoadData[variable.codigo_variable] && variable.map === true
         ? handleLoadVariable(variable)
@@ -28,9 +35,32 @@ const VariablesView = ({
     if (state) {
       setDateFilter(true);
     }
+    if (state?.associate.length) {
+      setToggleFilter(true);
+    } else {
+      setToggleFilter(false);
+    }
   }, [state]);
+
+  const handleToggleClick = (e) => {
+    state.setToggle({ state: true, value: parseInt(e.target.name) });
+  };
   return (
     <div className="flex flex-col w-full items-center pt-4">
+      {toggleFilter && (
+        <div className="flex items-center justify-center mb-4 bg-slate-300">
+          <button className="toggle" name={0} onClick={handleToggleClick}>
+            Ambos
+          </button>
+          <button className="toggle" name={1} onClick={handleToggleClick}>
+            {formatText(state.variableName)}
+          </button>
+          <button className="toggle" name={2} onClick={handleToggleClick}>
+            {formatText(state.associatedName)}
+          </button>
+        </div>
+      )}
+
       <h4 className="text-center">Variables</h4>
       <div className="flex w-full flex-wrap">
         {variables.map((variable, index) => {
@@ -60,7 +90,7 @@ const VariablesView = ({
           return null;
         })}
       </div>
-      {dateFilter && console.log("state", state) && (
+      {dateFilter && (
         <div className="card">
           <div className="card-body">
             <DateFilter
@@ -74,24 +104,43 @@ const VariablesView = ({
           </div>
         </div>
       )}
-      
-      
+
       <div className="row map-style-container">
-      <h4 className="text-center pb-2">Tipos de mapas</h4>
+        <h4 className="text-center pb-2">Tipos de mapas</h4>
         {[
-          { value: "dark", label: "Oscura", bg: "url('/src/assets/imgs/mapa-oscura.png')" },
-          { value: "osm", label: "Estándar", bg: "url('/src/assets/imgs/mapa-estandar.png')" },
-          { value: "satellite", label: "Satélite", bg: "url('/src/assets/imgs/mapa-relieve.png')" },
-          { value: "topo", label: "Topográfica", bg: "url('/src/assets/imgs/mapa-topografica.png')" },  
+          {
+            value: "dark",
+            label: "Oscura",
+            bg: "url('/src/assets/imgs/mapa-oscura.png')",
+          },
+          {
+            value: "osm",
+            label: "Estándar",
+            bg: "url('/src/assets/imgs/mapa-estandar.png')",
+          },
+          {
+            value: "satellite",
+            label: "Satélite",
+            bg: "url('/src/assets/imgs/mapa-relieve.png')",
+          },
+          {
+            value: "topo",
+            label: "Topográfica",
+            bg: "url('/src/assets/imgs/mapa-topografica.png')",
+          },
         ].map((style) => (
           <div className="col m-0 p-0" key={style.value}>
             <button
-              className={`map-style-toggle ${mapStyle === style.value ? "active" : ""}`}
+              className={`map-style-toggle ${
+                mapStyle === style.value ? "active" : ""
+              }`}
               style={{
                 backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.3)),${style.bg}`,
-                filter: mapStyle === style.value ? "none" : "grayscale(100%)"
+                filter: mapStyle === style.value ? "none" : "grayscale(100%)",
               }}
-              onClick={() => handleMapStyleChange({ target: { value: style.value } })}
+              onClick={() =>
+                handleMapStyleChange({ target: { value: style.value } })
+              }
             >
               {style.label}
             </button>
@@ -110,6 +159,7 @@ VariablesView.propTypes = {
   handleLoadVariable: PropTypes.func,
   mapStyle: PropTypes.string,
   handleMapStyleChange: PropTypes.func,
+  originalGeoData: PropTypes.array,
 };
 
 export default VariablesView;

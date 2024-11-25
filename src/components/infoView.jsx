@@ -19,7 +19,8 @@ const InfoView = ({
   const [originalAssociatedData, setOriginalAssociatedData] = useState(null);
   const [infoAssociated, setInfoAssociated] = useState(null);
   const [lastElement, setLastElement] = useState("");
-  const { setState } = useContext(DateFilterContext);
+  const { setState, state } = useContext(DateFilterContext);
+  const [toggle, setToggle] = useState({ state: false, value: "" });
 
   const [dateRange, setDateRange] = useState({ min: null, max: null });
 
@@ -49,15 +50,23 @@ const InfoView = ({
 
     if (originalInfoData) {
       setState({
+        ...state,
         events: originalInfoData || [],
         dateRange,
         setDateRange: handleDateRangeChange,
         setInfoView,
         setInfoAssociated,
         associate: infoAssociated,
+        toggle: toggle,
+        setToggle: setToggle,
+        variableName: variableName,
+        associatedName: associatedVariable,
       });
     }
   }, [selectedFeatureInfo, variableName, originalInfoData]);
+
+  useEffect(() => {}, [toggle, toggle.value]);
+
   const handleDateRangeChange = (newRange) => {
     setDateRange(newRange);
 
@@ -98,6 +107,7 @@ const InfoView = ({
                     associatedVariable={associatedVariable}
                     unit={unit}
                     graficType={graficType}
+                    toggle={toggle}
                   />
                 </div>
               </div>

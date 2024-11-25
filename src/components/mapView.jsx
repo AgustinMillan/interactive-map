@@ -1,6 +1,6 @@
 // src/components/mapView.jsx
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, GeoJSON, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import getStartupVariables from "./getStartupVariables.js";
@@ -23,11 +23,15 @@ import {
 } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  faBars,
-  faInfoCircle,
   faChevronLeft,
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
+import {
+  concatArrays,
+  formatText,
+  getSearch,
+  handlePopup,
+} from "../common/helpers.js";
 
 // Configuración de iconos de Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -52,7 +56,7 @@ const MapView = () => {
   const [mapStyle, setMapStyle] = useState("dark");
   const [search, setSearch] = useState("");
   const [showProjectModal, setShowProjectModal] = useState(false);
-  // const [lastSearch, setLastSearch] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
 
   // Estados para controlar la visibilidad de las sidebars
   const [showToolsSidebar, setShowToolsSidebar] = useState(true);
@@ -61,6 +65,8 @@ const MapView = () => {
   const [selectedFeatureId, setSelectedFeatureId] = useState(null);
   const [showActionModal, setShowActionModal] = useState(false);
   const [showOtherActionModal, setShowOtherActionModal] = useState(false);
+
+  const mapRef = useRef(null);
 
   useEffect(() => {
     const fetchVariables = async () => {
@@ -133,6 +139,7 @@ const MapView = () => {
         setGraficType(variable.graficType?.toUpperCase());
         setShowAnalysisPanel(true);
         setSelectedFeatureId(feature.properties.cod_ele);
+        handlePopup(layer, variable.variableName, feature.properties);
       },
     });
   };
@@ -183,25 +190,44 @@ const MapView = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    let filter = [];
-    originalGeoData.map((geo) => {
-      const arr = [];
-      geo.data.map((item) => {
-        const regex = new RegExp(search, "i");
-        if (
-          regex.test(item.properties.cod_ele) ||
-          regex.test(item.properties?.nombre) ||
-          regex.test(item.properties?.codigo)
-        ) {
-          arr.push(item);
-        }
-      });
-      if (arr.length) {
-        filter.push({ ...geo, data: arr });
+    setGeoData(getSearch(search, originalGeoData));
+  };
+
+  const onChangeSearch = (e) => {
+    setSearch(e);
+    const filter = getSearch(search, originalGeoData);
+
+    const notView = [];
+    variables.map((item) => {
+      if (item.map === false) {
+        notView.push(item.codigo_variable);
       }
     });
+
+    const cleanArray = [];
+    filter.map((item) => {
+      if (!notView.includes(item.variableName)) {
+        cleanArray.push(item.data);
+      }
+    });
+
+    setSuggestions(concatArrays(cleanArray));
     setGeoData(filter);
-    // setLastSearch(search);
+  };
+
+  const handleSuggestionClick = (featureId) => {
+    // Accede al objeto del mapa desde el ref
+    const map = mapRef.current;
+
+    if (!map) return;
+
+    // Encuentra el punto del featureId en el mapa
+    map.eachLayer((layer) => {
+      if (layer.feature?.properties?.cod_ele === featureId) {
+        // Simula un evento `click` en la capa
+        layer.fire("click");
+      }
+    });
   };
 
   return (
@@ -224,23 +250,34 @@ const MapView = () => {
               <Nav.Link onClick={handleShowActionModal}>Modelos</Nav.Link>
 
               {/* Descargas */}
-              <Nav.Link onClick={handleShowOtherActionModal}>Descargas</Nav.Link>
+              <Nav.Link onClick={handleShowOtherActionModal}>
+                Descargas
+              </Nav.Link>
 
               {/* Proyecto */}
-              <Nav.Link onClick={() => setShowProjectModal(true)}>Proyecto</Nav.Link>
+              <Nav.Link onClick={() => setShowProjectModal(true)}>
+                Proyecto
+              </Nav.Link>
 
               {/* Material de Apoyo */}
-              <NavDropdown title="Material de apoyo" id="support-material-dropdown">
-                <NavDropdown.Item href="#support-item-1">Item 1</NavDropdown.Item>
-                <NavDropdown.Item href="#support-item-2">Item 2</NavDropdown.Item>
-                <NavDropdown.Item href="#support-item-3">Item 3</NavDropdown.Item>
+              <NavDropdown
+                title="Material de apoyo"
+                id="support-material-dropdown"
+              >
+                <NavDropdown.Item href="#support-item-1">
+                  Item 1
+                </NavDropdown.Item>
+                <NavDropdown.Item href="#support-item-2">
+                  Item 2
+                </NavDropdown.Item>
+                <NavDropdown.Item href="#support-item-3">
+                  Item 3
+                </NavDropdown.Item>
               </NavDropdown>
             </Nav>
           </Navbar.Collapse>
         </Container>
       </Navbar>
-
-      
 
       {/* Sidebar de herramientas */}
       <div
@@ -256,7 +293,7 @@ const MapView = () => {
           onClick={() => setShowToolsSidebar(!showToolsSidebar)}
           style={{
             position: "absolute",
-            left: showToolsSidebar ? "0" : "0", // Botón sigue la posición del toolbar
+            // left: showToolsSidebar ? "0" : "0",
             top: "50%",
             zIndex: 10,
             left: "390px",
@@ -264,7 +301,9 @@ const MapView = () => {
             height: "290px",
           }}
         >
-        <FontAwesomeIcon icon={showToolsSidebar ? faChevronLeft : faChevronRight} />
+          <FontAwesomeIcon
+            icon={showToolsSidebar ? faChevronLeft : faChevronRight}
+          />
         </Button>
         <VariablesView
           variables={variables}
@@ -274,23 +313,41 @@ const MapView = () => {
           handleLoadVariable={handleLoadVariable}
           mapStyle={mapStyle}
           handleMapStyleChange={handleMapStyleChange}
+          originalGeoData={originalGeoData}
         />
       </div>
-
 
       {/* busqueda */}
       <div className={`shadow bg-slate-500`}>
         <form onSubmit={(e) => handleSearch(e)}>
-          <input type="text" onChange={(e) => setSearch(e.target.value)} />
+          <input type="text" onChange={(e) => onChangeSearch(e.target.value)} />
           <button type="submit" className="search-btn">
             <i className="fas fa-search"></i>
-          </button>        
+          </button>
+          {suggestions.length && (
+            <ul>
+              {suggestions.map((item, index) => {
+                return (
+                  <li
+                    key={index}
+                    onClick={() =>
+                      handleSuggestionClick(item.properties.cod_ele)
+                    }
+                    style={{ cursor: "pointer", color: "blue" }}
+                  >
+                    {`${item?.properties?.cod_ele} | ${item?.properties?.nombre}`}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </form>
       </div>
 
       {/* Contenedor del mapa */}
       <div className="map-container">
         <MapContainer
+          ref={mapRef}
           center={[-33.45, -70.65]}
           zoom={8}
           style={{ height: "100%", width: "100%" }}
@@ -315,7 +372,7 @@ const MapView = () => {
                           <div className="card-body">
                             <p className="card-text">
                               <strong>Variable:</strong>
-                              {selectedVariableName?.replace("_", " ")}
+                              {formatText(selectedVariableName)}
                             </p>
                             <ul className="list-unstyled">
                               {Object.entries(selectedFeatureInfo).map(
@@ -336,7 +393,7 @@ const MapView = () => {
             )}
         </MapContainer>
       </div>
-      
+
       {/* Modal para "Acción" */}
       <Modal show={showActionModal} onHide={handleCloseActionModal}>
         <Modal.Header closeButton>
@@ -376,7 +433,10 @@ const MapView = () => {
           <p>Contenido relacionado con el Proyecto.</p>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowProjectModal(false)}>
+          <Button
+            variant="secondary"
+            onClick={() => setShowProjectModal(false)}
+          >
             Cerrar
           </Button>
         </Modal.Footer>
@@ -403,10 +463,10 @@ const MapView = () => {
             top: "50%",
             transform: "translateY(-50%)",
             zIndex: 10,
-            width:"30px",
-            height:"290px",
-            background:"unset",
-            border:"unset",
+            width: "30px",
+            height: "290px",
+            background: "unset",
+            border: "unset",
           }}
         >
           <FontAwesomeIcon
@@ -423,7 +483,7 @@ const MapView = () => {
           />
         )}
       </div>
-      
+
       {/* Pie de página */}
       <footer className="footer bg-dark">
         <Container
@@ -433,35 +493,38 @@ const MapView = () => {
           <div className="d-flex justify-content-center justify-content-md-start">
             {/* Logos a la izquierda y derecha en una fila */}
             <a href="https://www.dictuc.cl" target="new">
-            <img
-              src="/src/assets/imgs/logo-dictuc.png"
-              alt="Dictuc"
-              className="d-inline-block align-top"
-              style={{ width: "130px", height: "auto", margin: "1rem" }}
-            />
+              <img
+                src="/src/assets/imgs/logo-dictuc.png"
+                alt="Dictuc"
+                className="d-inline-block align-top"
+                style={{ width: "130px", height: "auto", margin: "1rem" }}
+              />
             </a>
           </div>
           <div className="text-center my-2">
             {/* Legales al centro, ocupa toda la fila en mobile */}
-            <small>&copy; 2025 Dictuc [nombre del equipo]. Todos los derechos reservados.</small>
+            <small>
+              &copy; 2025 Dictuc [nombre del equipo]. Todos los derechos
+              reservados.
+            </small>
           </div>
           <div className="d-flex justify-content-center justify-content-md-end">
             {/* Logos a la derecha */}
             <a href="https://www.corfo.cl" target="new">
-            <img
-              src="/src/assets/imgs/corfo.png"
-              alt="Corfo"
-              className="d-inline-block align-top me-2"
-              style={{ width: "80px", height: "auto" }}
-            />
+              <img
+                src="/src/assets/imgs/corfo.png"
+                alt="Corfo"
+                className="d-inline-block align-top me-2"
+                style={{ width: "80px", height: "auto" }}
+              />
             </a>
             <a href="https://dga.mop.gob.cl/" target="new">
-            <img
-              src="/src/assets/imgs/dga.jpg"
-              alt="Dirección General de Aguas DGA"
-              className="d-inline-block align-top"
-              style={{ width: "80px", height: "auto" }}
-            />
+              <img
+                src="/src/assets/imgs/dga.jpg"
+                alt="Dirección General de Aguas DGA"
+                className="d-inline-block align-top"
+                style={{ width: "80px", height: "auto" }}
+              />
             </a>
           </div>
         </Container>

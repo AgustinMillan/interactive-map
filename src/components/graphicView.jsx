@@ -1,6 +1,10 @@
 import PropTypes from "prop-types";
 import { Line, Bar } from "react-chartjs-2";
-import { calculateDateRange } from "../common/helpers";
+import {
+  calculateDateRange,
+  formatText,
+  getViewToGraphic,
+} from "../common/helpers";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,7 +19,6 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import Zoom from "chartjs-plugin-zoom";
-import { faLeftLong } from "@fortawesome/free-solid-svg-icons";
 
 ChartJS.register(
   CategoryScale,
@@ -37,6 +40,7 @@ const GraphicView = ({
   associatedVariable,
   unit,
   graficType,
+  toggle,
 }) => {
   // Calcular rango de fechas
   const { min: minDate, max: maxDate } = calculateDateRange(data, associate);
@@ -93,17 +97,17 @@ const GraphicView = ({
         backgroundColor: "rgba(54, 162, 235, 0.6)",
         borderColor: "rgba(54, 162, 235, 1)",
         spanGaps: true,
-        layout:{
-          padding:{
-            top:0,
+        layout: {
+          padding: {
+            top: 0,
             bottom: 0,
             left: 0,
             right: 0,
-          }
+          },
         },
         borderWidth: 2, // Añadir borde más grueso para mejor visibilidad en modo oscuro
       },
-      associate && {
+      associatedVariable && {
         label: associatedVariable,
         data: associateValues,
         backgroundColor: "rgba(255, 99, 132, 0.6)",
@@ -114,6 +118,11 @@ const GraphicView = ({
     ].filter(Boolean),
     backgroundColor: "rgba(0, 0, 0, 0.8)", // Fondo oscuro para el gráfico
   };
+
+  if (toggle.state) {
+    chartData.datasets = getViewToGraphic(toggle.value, chartData.datasets);
+  }
+
   const options = {
     responsive: true,
     scales: {
@@ -168,7 +177,7 @@ const GraphicView = ({
       tooltip: {
         callbacks: {
           label: (context) => {
-            const label = context.dataset.label?.replace("_", " ") || "";
+            const label = formatText(context.dataset.label);
             const value =
               context.raw !== null ? `${context.raw} ${unit}` : "N/A";
             return `${label}: ${value}`;
@@ -196,11 +205,11 @@ const GraphicView = ({
     },
 
     backgroundColor: "rgba(0, 0, 0, 0.8)", // Fondo oscuro para el gráfico
-  };  
+  };
 
   return (
     <div className="flex">
-      <div className="w-full" style={{ maxHeight: '300px' }}>        
+      <div className="w-full" style={{ maxHeight: "300px" }}>
         {graficType === "LINEA" ? (
           <Line data={chartData} options={options} />
         ) : (
@@ -218,6 +227,7 @@ GraphicView.propTypes = {
   associate: PropTypes.array,
   unit: PropTypes.string,
   graficType: PropTypes.string,
+  toggle: PropTypes.object,
 };
 
 export default GraphicView;
