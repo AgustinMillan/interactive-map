@@ -1,5 +1,4 @@
 // src/components/mapView.jsx
-
 import { useState, useEffect, useRef } from "react";
 import { MapContainer, TileLayer, GeoJSON, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -10,7 +9,6 @@ import VariablesView from "./variablesView.jsx";
 import L from "leaflet";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
-
 // Importamos Bootstrap y FontAwesome
 import "bootstrap/dist/css/bootstrap.min.css";
 import {
@@ -33,6 +31,10 @@ import {
   handlePopup,
 } from "../common/helpers.js";
 import MoreVariables from "./moreVariables.jsx";
+import appLogo from "../assets/imgs/logo-app.png";
+import dictucLogo from "../assets/imgs/logo-dictuc.png";
+import corfoLogo from "../assets/imgs/corfo.png";
+import dgaImg from "../assets/imgs/dga.jpg";
 
 // Configuración de iconos de Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -229,7 +231,7 @@ const MapView = () => {
           <Navbar.Brand href="#home">
             {/* Aquí puedes colocar tu logo */}
             <img
-              src="/src/assets/imgs/logo-app.png"
+              src={appLogo}
               alt="Explorador Ambiental"
               className="d-inline-block align-top"
             />
@@ -515,7 +517,7 @@ const MapView = () => {
             {/* Logos a la izquierda y derecha en una fila */}
             <a href="https://www.dictuc.cl" target="new">
               <img
-                src="/src/assets/imgs/logo-dictuc.png"
+                src={dictucLogo}
                 alt="Dictuc"
                 className="d-inline-block align-top"
                 style={{ width: "130px", height: "auto", margin: "1rem" }}
@@ -533,7 +535,7 @@ const MapView = () => {
             {/* Logos a la derecha */}
             <a href="https://www.corfo.cl" target="new">
               <img
-                src="/src/assets/imgs/corfo.png"
+                src={corfoLogo}
                 alt="Corfo"
                 className="d-inline-block align-top me-2"
                 style={{ width: "80px", height: "auto" }}
@@ -541,7 +543,7 @@ const MapView = () => {
             </a>
             <a href="https://dga.mop.gob.cl/" target="new">
               <img
-                src="/src/assets/imgs/dga.jpg"
+                src={dgaImg}
                 alt="Dirección General de Aguas DGA"
                 className="d-inline-block align-top"
                 style={{ width: "80px", height: "auto" }}
