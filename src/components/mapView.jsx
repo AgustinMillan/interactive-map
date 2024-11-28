@@ -32,6 +32,7 @@ import {
   getSearch,
   handlePopup,
 } from "../common/helpers.js";
+import MoreVariables from "./moreVariables.jsx";
 
 // Configuración de iconos de Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -62,9 +63,9 @@ const MapView = () => {
   const [showToolsSidebar, setShowToolsSidebar] = useState(true);
   const [showAnalysisPanel, setShowAnalysisPanel] = useState(false);
 
-  const [selectedFeatureId, setSelectedFeatureId] = useState(null);
   const [showActionModal, setShowActionModal] = useState(false);
   const [showOtherActionModal, setShowOtherActionModal] = useState(false);
+  const [viewMoreVariables, setViewMoreVariables] = useState(false);
 
   const mapRef = useRef(null);
 
@@ -84,7 +85,7 @@ const MapView = () => {
   }, []);
 
   const handleLoadVariable = async (variable) => {
-    const { codigo_variable, asociado, unidad, grafico } = variable;
+    const { codigo_variable, asociado, unidad, grafico, color } = variable;
 
     const geoJson = await loadMapData(codigo_variable);
     if (geoJson) {
@@ -96,6 +97,7 @@ const MapView = () => {
           associatedVariable: asociado === "-" || !asociado ? null : asociado,
           unit: unidad,
           graficType: grafico,
+          color,
         },
       ]);
 
@@ -107,6 +109,7 @@ const MapView = () => {
           associatedVariable: asociado === "-" || !asociado ? null : asociado,
           unit: unidad,
           graficType: grafico,
+          color,
         },
       ]);
 
@@ -138,7 +141,6 @@ const MapView = () => {
         setUnit(variable.unit);
         setGraficType(variable.graficType?.toUpperCase());
         setShowAnalysisPanel(true);
-        setSelectedFeatureId(feature.properties.cod_ele);
         handlePopup(layer, variable.variableName, feature.properties);
       },
     });
@@ -159,25 +161,14 @@ const MapView = () => {
         "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
     },
     dark: {
-      url: "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
+      url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
       attribution:
-        "&copy; Stadia Maps, OpenMapTiles, OpenStreetMap contributors",
+        "&copy; <a href='https://carto.com/attributions'>CARTO</a> contributors",
     },
     topo: {
       url: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
       attribution: "Map data &copy; OpenTopoMap contributors",
     },
-  };
-
-  const getFeatureStyle = (feature) => {
-    const isSelected = feature.properties.cod_ele === selectedFeatureId;
-    return {
-      fillColor: isSelected ? "#2A7DE1" : "#708eb1",
-      weight: 0,
-      opacity: 1,
-      color: "transparent",
-      fillOpacity: 0.3,
-    };
   };
 
   const handleShowActionModal = () => setShowActionModal(true);
@@ -314,8 +305,21 @@ const MapView = () => {
           mapStyle={mapStyle}
           handleMapStyleChange={handleMapStyleChange}
           originalGeoData={originalGeoData}
+          setViewMoreVariables={setViewMoreVariables}
         />
       </div>
+
+      {viewMoreVariables && (
+        <div>
+          <h3>MAS VARIABLES</h3>
+          <MoreVariables
+            toggleLayerVisibility={toggleLayerVisibility}
+            variables={variables}
+            visibleLayers={visibleLayers}
+            setViewMoreVariables={setViewMoreVariables}
+          />
+        </div>
+      )}
 
       {/* busqueda */}
       <div className={`shadow bg-slate-500`}>
@@ -363,7 +367,24 @@ const MapView = () => {
                   key={`${layer.variableName}${layer.data.length}${index}`}
                   data={layer.data}
                   onEachFeature={onEachFeature(layer)}
-                  style={getFeatureStyle}
+                  pointToLayer={(feature, latlng) => {
+                    // Aquí definimos cómo se visualizan los puntos
+                    return L.circleMarker(latlng, {
+                      radius: 10, // Tamaño más grande para hacerlo más visible
+                      fillColor: layer.color, // Color de relleno
+                      color: layer.color, // Color del borde ligeramente más oscuro
+                      weight: 2, // Grosor del borde
+                      opacity: 1, // Opacidad del borde
+                      fillOpacity: 1, // Relleno completamente opaco
+                    });
+                  }}
+                  style={{
+                    fillColor: layer.color, // Color de relleno para polígonos y líneas
+                    weight: 0,
+                    opacity: 1,
+                    color: "transparent",
+                    fillOpacity: 0.3,
+                  }}
                 >
                   {selectedVariableName && (
                     <Popup>

@@ -15,6 +15,7 @@ const VariablesView = ({
   mapStyle,
   handleMapStyleChange,
   originalGeoData,
+  setViewMoreVariables,
 }) => {
   const { state } = useContext(DateFilterContext);
   const [dateFilter, setDateFilter] = useState(false);
@@ -45,6 +46,12 @@ const VariablesView = ({
   const handleToggleClick = (e) => {
     state.setToggle({ state: true, value: parseInt(e.target.name) });
   };
+
+  let count = 0;
+  const variablesNumber = variables.reduce(
+    (acc, item) => (item.map ? acc + 1 : acc),
+    0
+  );
   return (
     <div className="flex flex-col w-full items-center pt-4">
       {toggleFilter && (
@@ -64,12 +71,12 @@ const VariablesView = ({
       <h4 className="text-center">Variables</h4>
       <div className="flex w-full flex-wrap">
         {variables.map((variable, index) => {
-          if (variable.map === true) {
+          if (variable.map === true && count < 3) {
+            count++;
             const isVisible = visibleLayers[variable.codigo_variable];
-            const icons = ["fa-leaf", "fa-water", "fa-cloud"]; // Hardcodeado por ahora
             return (
               <div
-                key={variable.variable_name}
+                key={variable.variable_name + index}
                 className="flex items-center justify-center w-1/3"
                 style={{ padding: ".1rem" }}
               >
@@ -81,7 +88,7 @@ const VariablesView = ({
                     toggleLayerVisibility(variable.codigo_variable)
                   }
                 >
-                  <span className={`fas ${icons[index % icons.length]}`} />
+                  <span className={`fas ${variable.icon}`} />
                   <span className="text-xs mt-2">{variable.variable_name}</span>
                 </button>
               </div>
@@ -90,6 +97,9 @@ const VariablesView = ({
           return null;
         })}
       </div>
+      {variablesNumber > 3 && (
+        <button onClick={() => setViewMoreVariables(true)}>VER MAS ...</button>
+      )}
       {dateFilter && (
         <div className="card">
           <div className="card-body">
@@ -160,6 +170,7 @@ VariablesView.propTypes = {
   mapStyle: PropTypes.string,
   handleMapStyleChange: PropTypes.func,
   originalGeoData: PropTypes.array,
+  setViewMoreVariables: PropTypes.func,
 };
 
 export default VariablesView;

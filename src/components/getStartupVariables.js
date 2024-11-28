@@ -1,5 +1,5 @@
 import * as XLSX from "xlsx";
-import variableFile from "../assets/resumen_variables.xlsx";
+import variableFile from "/resumen_variables.xlsx";
 
 const getStartupVariables = async () => {
   try {
