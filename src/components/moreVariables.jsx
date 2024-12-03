@@ -7,7 +7,6 @@ const MoreVariables = ({
   setViewMoreVariables,
 }) => {
   const sliceVars = variables.slice(4, variables.length);
-  console.log(sliceVars);
   return (
     <div className="flex w-full flex-wrap">
       <button onClick={() => setViewMoreVariables(false)}>cerrar</button>

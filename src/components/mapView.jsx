@@ -24,17 +24,13 @@ import {
   faChevronLeft,
   faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
-import {
-  concatArrays,
-  formatText,
-  getSearch,
-  handlePopup,
-} from "../common/helpers.js";
+import { concatArrays, getSearch, handlePopup } from "../common/helpers.js";
 import MoreVariables from "./moreVariables.jsx";
 import appLogo from "../assets/imgs/logo-app.png";
 import dictucLogo from "../assets/imgs/logo-dictuc.png";
 import corfoLogo from "../assets/imgs/corfo.png";
 import dgaImg from "../assets/imgs/dga.jpg";
+import PopupComponent from "./popupComponent.jsx";
 
 // Configuración de iconos de Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -390,25 +386,10 @@ const MapView = () => {
                 >
                   {selectedVariableName && (
                     <Popup>
-                      <div className="">
-                        <div className="card">
-                          <div className="card-body">
-                            <p className="card-text">
-                              <strong>Variable:</strong>
-                              {formatText(selectedVariableName)}
-                            </p>
-                            <ul className="list-unstyled">
-                              {Object.entries(selectedFeatureInfo).map(
-                                ([key, value]) => (
-                                  <li key={key}>
-                                    <strong>{key}:</strong> {value}
-                                  </li>
-                                )
-                              )}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
+                      <PopupComponent
+                        featureInfo={selectedFeatureInfo}
+                        variableName={selectedVariableName}
+                      />
                     </Popup>
                   )}
                 </GeoJSON>

@@ -61,6 +61,7 @@ const InfoView = ({
         setToggle: setToggle,
         variableName: variableName,
         associatedName: associatedVariable,
+        unit,
       });
     }
   }, [selectedFeatureInfo, variableName, originalInfoData]);

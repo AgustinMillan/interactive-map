@@ -19,6 +19,7 @@ import {
 } from "chart.js";
 import "chartjs-adapter-date-fns";
 import Zoom from "chartjs-plugin-zoom";
+import { useRef } from "react";
 
 ChartJS.register(
   CategoryScale,
@@ -42,6 +43,8 @@ const GraphicView = ({
   graficType,
   toggle,
 }) => {
+  const chartRef = useRef(null); // Crear referencia al gráfico
+
   // Calcular rango de fechas
   const { min: minDate, max: maxDate } = calculateDateRange(data, associate);
 
@@ -77,6 +80,12 @@ const GraphicView = ({
     return found ? found.value : null;
   });
 
+  dataValues.map((item, index) => {
+    if (item === null) {
+      uniqueDates.splice(index, 1);
+    }
+  });
+
   const associateValues = uniqueDates.map((date) => {
     if (filteredAssociate) {
       const found = filteredAssociate.find(
@@ -88,6 +97,8 @@ const GraphicView = ({
   });
 
   // Configuración del gráfico
+  const TWO_MONTHS_MS = 1000 * 60 * 60 * 24 * 30 * 2; // 2 meses en milisegundos
+
   const chartData = {
     labels: uniqueDates,
     datasets: [
@@ -96,15 +107,7 @@ const GraphicView = ({
         data: dataValues,
         backgroundColor: "rgba(54, 162, 235, 0.6)",
         borderColor: "rgba(54, 162, 235, 1)",
-        spanGaps: true,
-        layout: {
-          padding: {
-            top: 0,
-            bottom: 0,
-            left: 0,
-            right: 0,
-          },
-        },
+        spanGaps: TWO_MONTHS_MS, // Definir el gap máximo permitido
         borderWidth: 2, // Añadir borde más grueso para mejor visibilidad en modo oscuro
       },
       associatedVariable && {
@@ -112,11 +115,10 @@ const GraphicView = ({
         data: associateValues,
         backgroundColor: "rgba(255, 99, 132, 0.6)",
         borderColor: "rgba(255, 99, 132, 1)",
-        spanGaps: true,
+        spanGaps: TWO_MONTHS_MS, // Definir el gap máximo permitido
         borderWidth: 2, // Añadir borde más grueso para mejor visibilidad en modo oscuro
       },
     ].filter(Boolean),
-    backgroundColor: "rgba(0, 0, 0, 0.8)", // Fondo oscuro para el gráfico
   };
 
   if (toggle.state) {
@@ -125,42 +127,8 @@ const GraphicView = ({
 
   const options = {
     responsive: true,
-    scales: {
-      x: {
-        type: "time",
-        time: {
-          unit: "month",
-        },
-        ticks: {
-          font: {
-            size: 11, // Tamaño de la tipografía de los ejes
-            color: "white", // Color de la tipografía en modo oscuro
-          },
-        },
-        grid: {
-          color: "rgba(255, 255, 255, 0.2)", // Color de la cuadrícula en modo oscuro
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: `Valor (${unit})`,
-          font: {
-            size: 11, // Tamaño del título del eje X
-            color: "white", // Color del título en modo oscuro
-          },
-        },
-        ticks: {
-          callback: (value) => `${value} ${unit}`,
-          font: {
-            size: 11, // Tamaño de la tipografía de los ejes
-            color: "white", // Color de la tipografía en modo oscuro
-          },
-        },
-        grid: {
-          color: "rgba(255, 255, 255, 0.2)", // Color de la cuadrícula en modo oscuro
-        },
-      },
+    interaction: {
+      mode: "nearest",
     },
     plugins: {
       legend: {
@@ -203,19 +171,66 @@ const GraphicView = ({
         },
       },
     },
+    scales: {
+      x: {
+        type: "time",
+        time: {
+          unit: "month",
+        },
+        ticks: {
+          font: {
+            size: 11, // Tamaño de la tipografía de los ejes
+            color: "white", // Color de la tipografía en modo oscuro
+          },
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.2)", // Color de la cuadrícula en modo oscuro
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: `Valor (${unit})`,
+          font: {
+            size: 11, // Tamaño del título del eje Y
+            color: "white", // Color del título en modo oscuro
+          },
+        },
+        ticks: {
+          callback: (value) => `${value} ${unit}`,
+          font: {
+            size: 11, // Tamaño de la tipografía de los ejes
+            color: "white", // Color de la tipografía en modo oscuro
+          },
+        },
+        grid: {
+          color: "rgba(255, 255, 255, 0.2)", // Color de la cuadrícula en modo oscuro
+        },
+      },
+    },
+  };
 
-    backgroundColor: "rgba(0, 0, 0, 0.8)", // Fondo oscuro para el gráfico
+  const handleResetZoom = () => {
+    if (chartRef.current) {
+      chartRef.current.resetZoom();
+    }
   };
 
   return (
     <div className="flex">
       <div className="w-full" style={{ maxHeight: "300px" }}>
         {graficType === "LINEA" ? (
-          <Line data={chartData} options={options} />
+          <Line ref={chartRef} data={chartData} options={options} />
         ) : (
-          <Bar data={chartData} options={options} />
+          <Bar ref={chartRef} data={chartData} options={options} />
         )}
       </div>
+      <button
+        onClick={handleResetZoom}
+        className="mt-4 bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+      >
+        Reiniciar Zoom
+      </button>
     </div>
   );
 };
