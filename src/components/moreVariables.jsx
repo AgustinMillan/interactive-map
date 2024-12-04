@@ -6,7 +6,7 @@ const MoreVariables = ({
   toggleLayerVisibility,
   setViewMoreVariables,
 }) => {
-  const sliceVars = variables.slice(4, variables.length);
+  const sliceVars = variables.slice(3, variables.length);
   return (
     <div className="flex w-full flex-wrap">
       <button onClick={() => setViewMoreVariables(false)}>cerrar</button>

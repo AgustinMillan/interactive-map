@@ -20,6 +20,7 @@ const VariablesView = ({
   const { state } = useContext(DateFilterContext);
   const [dateFilter, setDateFilter] = useState(false);
   const [toggleFilter, setToggleFilter] = useState(false);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
 
   useEffect(() => {
     if (originalGeoData.length) {
@@ -71,22 +72,33 @@ const VariablesView = ({
       <h4 className="text-center">Variables</h4>
       <div className="flex w-full flex-wrap">
         {variables.map((variable, index) => {
-          if (variable.map === true && count < 3) {
+          if (count < 3) {
             count++;
             const isVisible = visibleLayers[variable.codigo_variable];
+            console.log(variable);
             return (
               <div
                 key={variable.variable_name + index}
-                className="flex items-center justify-center w-1/3"
+                className="flex-col items-center justify-center w-1/3"
                 style={{ padding: ".1rem" }}
               >
+                {/* Mostrar descripción si está en hover */}
+                {hoveredIndex === index && (
+                  <div className="absolute top-full mt-1 p-2 bg-gray-700 text-white text-xs rounded shadow-lg">
+                    {variable.descripcion}
+                  </div>
+                )}
                 <button
                   className={`flex flex-col items-center justify-center toggle-button ${
                     isVisible ? "active" : "inactive"
                   }`}
-                  onClick={() =>
-                    toggleLayerVisibility(variable.codigo_variable)
+                  onClick={
+                    variable.map
+                      ? () => toggleLayerVisibility(variable.codigo_variable)
+                      : null
                   }
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
                 >
                   <span className={`fas ${variable.icon}`} />
                   <span className="text-xs mt-2">{variable.variable_name}</span>

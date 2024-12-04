@@ -54,6 +54,7 @@ const MapView = () => {
   const [showActionModal, setShowActionModal] = useState(false);
   const [showOtherActionModal, setShowOtherActionModal] = useState(false);
   const [viewMoreVariables, setViewMoreVariables] = useState(false);
+  const [selectedFeature, setSelectedFeature] = useState(null);
 
   const mapRef = useRef(null);
 
@@ -120,20 +121,6 @@ const MapView = () => {
     }));
   };
 
-  const onEachFeature = (variable) => (feature, layer) => {
-    layer.on({
-      click: () => {
-        setSelectedFeatureInfo(feature.properties);
-        setAssociatedVariable(variable.associatedVariable);
-        setSelectedVariableName(variable.variableName);
-        setUnit(variable.unit);
-        setGraficType(variable.graficType?.toUpperCase());
-        setShowAnalysisPanel(true);
-        handlePopup(layer, variable.variableName, feature.properties);
-      },
-    });
-  };
-
   const handleMapStyleChange = (event) => {
     setMapStyle(event.target.value);
   };
@@ -161,6 +148,30 @@ const MapView = () => {
 
   const handleCloseActionModal = () => setShowActionModal(false);
   const handleCloseOtherActionModal = () => setShowOtherActionModal(false);
+
+  const onEachFeature = (variable) => (feature, layer) => {
+    layer.on({
+      click: (e) => {
+        setSelectedFeatureInfo(feature.properties);
+        setAssociatedVariable(variable.associatedVariable);
+        setSelectedVariableName(variable.variableName);
+        setUnit(variable.unit);
+        setGraficType(variable.graficType?.toUpperCase());
+        setShowAnalysisPanel(true);
+        handlePopup(layer, variable.variableName, feature.properties);
+        layer.openPopup();
+
+        setSelectedFeature(feature);
+        e.target.setStyle({ fillColor: "red", color: "red" });
+      },
+    });
+  };
+
+  useEffect(() => {
+    if (selectedFeature) {
+      console.log("Feature selected:", selectedFeature);
+    }
+  }, [selectedFeature]);
 
   useEffect(() => {}, [geoData]);
 
@@ -212,6 +223,7 @@ const MapView = () => {
         />
       </div>
 
+      {/* Sidebar con más variables */}
       {viewMoreVariables && (
         <div>
           <h3>MAS VARIABLES</h3>
@@ -248,11 +260,12 @@ const MapView = () => {
             geoData.map((layer, index) =>
               visibleLayers[layer.variableName] ? (
                 <GeoJSON
-                  key={`${layer.variableName}${layer.data.length}${index}`}
+                  key={`${layer.variableName}${layer.data.length}${index}${layer.color}`}
                   data={layer.data}
                   onEachFeature={onEachFeature(layer)}
                   pointToLayer={(feature, latlng) => {
                     // Aquí definimos cómo se visualizan los puntos
+                    const color = layer.color;
                     return L.circleMarker(latlng, {
                       radius: 10, // Tamaño más grande para hacerlo más visible
                       fillColor: layer.color, // Color de relleno
@@ -260,6 +273,7 @@ const MapView = () => {
                       weight: 2, // Grosor del borde
                       opacity: 1, // Opacidad del borde
                       fillOpacity: 1, // Relleno completamente opaco
+                      originalColor: color,
                     });
                   }}
                   style={{
